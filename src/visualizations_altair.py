@@ -29,12 +29,20 @@ def get_altair_theme(theme: Dict = None) -> Dict:
     
     is_dark = theme.get('paper_bgcolor', 'white') != 'white'
     
+    # Primary chart color - lighter for dark mode, darker for light mode
+    primary_color = '#28A197' if is_dark else '#12436D'  # Turquoise for dark, dark blue for light
+    secondary_color = '#F46A25'  # Orange works in both modes
+    accent_color = '#28A197'  # Turquoise
+    
     return {
         'background': theme['paper_bgcolor'],
         'font_color': theme['font_color'],
         'grid_color': theme['grid_color'],
         'title_color': theme['title_color'],
-        'is_dark': is_dark
+        'is_dark': is_dark,
+        'primary_color': primary_color,
+        'secondary_color': secondary_color,
+        'accent_color': accent_color
     }
 
 
@@ -59,8 +67,8 @@ def create_distance_timeline(df: pd.DataFrame, title: str = "Distance Per Activi
         y=alt.Y('Distance (km):Q', title='Distance (km)')
     )
     
-    line = base.mark_line(color='#12436D', strokeWidth=2)
-    points = base.mark_circle(color='#12436D', size=50)
+    line = base.mark_line(color=t['primary_color'], strokeWidth=2)
+    points = base.mark_circle(color=t['primary_color'], size=50)
     
     chart = (line + points).properties(
         title=title,
@@ -137,7 +145,7 @@ def create_duration_histogram(df: pd.DataFrame, title: str = "Duration Distribut
     """
     t = get_altair_theme(theme)
     
-    chart = alt.Chart(df).mark_bar(color='#12436D', opacity=0.85).encode(
+    chart = alt.Chart(df).mark_bar(color=t['primary_color'], opacity=0.85).encode(
         x=alt.X('Duration (min):Q', bin=alt.Bin(maxbins=15), title='Duration (min)'),
         y=alt.Y('count():Q', title='Count'),
         tooltip=[alt.Tooltip('Duration (min):Q', bin=alt.Bin(maxbins=15)), 'count():Q']
@@ -184,8 +192,8 @@ def create_cumulative_distance_chart(period_data: pd.DataFrame,
         y=alt.Y('Cumulative Distance:Q', title='Total Distance (km)')
     )
     
-    line = base.mark_line(color='#28A197', strokeWidth=3)
-    points = base.mark_circle(color='#28A197', size=60)
+    line = base.mark_line(color=t['accent_color'], strokeWidth=3)
+    points = base.mark_circle(color=t['accent_color'], size=60)
     
     chart = (line + points).properties(
         title=title,
@@ -231,18 +239,18 @@ def create_activity_trends_chart(period_data: pd.DataFrame,
     )
     
     # Distance line (left axis)
-    distance_line = base.mark_line(color='#12436D', strokeWidth=2.5).encode(
-        y=alt.Y('Distance:Q', title='Distance (km)', axis=alt.Axis(titleColor='#12436D'))
+    distance_line = base.mark_line(color=t['primary_color'], strokeWidth=2.5).encode(
+        y=alt.Y('Distance:Q', title='Distance (km)', axis=alt.Axis(titleColor=t['primary_color']))
     )
-    distance_points = base.mark_circle(color='#12436D', size=50).encode(
+    distance_points = base.mark_circle(color=t['primary_color'], size=50).encode(
         y=alt.Y('Distance:Q')
     )
     
     # Activity count line (right axis) 
-    count_line = base.mark_line(color='#F46A25', strokeWidth=2.5, strokeDash=[5, 3]).encode(
-        y=alt.Y('Activity Count:Q', title='Activity Count', axis=alt.Axis(titleColor='#F46A25'))
+    count_line = base.mark_line(color=t['secondary_color'], strokeWidth=2.5, strokeDash=[5, 3]).encode(
+        y=alt.Y('Activity Count:Q', title='Activity Count', axis=alt.Axis(titleColor=t['secondary_color']))
     )
-    count_points = base.mark_circle(color='#F46A25', size=50).encode(
+    count_points = base.mark_circle(color=t['secondary_color'], size=50).encode(
         y=alt.Y('Activity Count:Q')
     )
     
@@ -250,7 +258,7 @@ def create_activity_trends_chart(period_data: pd.DataFrame,
     distance_chart = (distance_line + distance_points)
     count_chart = (count_line + count_points).encode(
         y=alt.Y('Activity Count:Q', title='Activity Count', 
-                axis=alt.Axis(titleColor='#F46A25', orient='right'))
+                axis=alt.Axis(titleColor=t['secondary_color'], orient='right'))
     )
     
     chart = alt.layer(distance_chart, count_chart).resolve_scale(
@@ -410,11 +418,13 @@ def create_exercise_obsession_gauge(score: int, level: str, theme: Dict = None) 
     """
     t = get_altair_theme(theme)
     
-    # Create data for arc segments
+    # Create data for arc segments - use theme-aware background for remaining
+    remaining_color = t['grid_color'] if t['is_dark'] else '#E8EDEE'
+    
     data = pd.DataFrame({
         'category': ['Score', 'Remaining'],
         'value': [score, 100 - score],
-        'color': ['#F46A25', '#E8EDEE']
+        'color': [t['secondary_color'], remaining_color]
     })
     
     # Create the arc chart
