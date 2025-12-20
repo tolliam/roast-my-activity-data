@@ -12,14 +12,14 @@ from src.config import ACTIVITY_GROUP_MAP, DATA_FILE_PATH
 
 
 @st.cache_data
-def load_strava_data(file_path: Optional[str] = None) -> pd.DataFrame:
-    """Load and preprocess Strava activities from CSV file.
+def load_strava_data(file_path=None) -> pd.DataFrame:
+    """Load and preprocess Strava activities from CSV file or uploaded file.
     
     This function reads the Strava activities CSV, converts data types,
     calculates derived metrics, and maps activity types to groups.
     
     Args:
-        file_path: Path to the CSV file containing Strava activities.
+        file_path: Path to the CSV file or UploadedFile object from Streamlit.
                   If None, uses the default path from config.
     
     Returns:
@@ -44,7 +44,7 @@ def load_strava_data(file_path: Optional[str] = None) -> pd.DataFrame:
     if file_path is None:
         file_path = DATA_FILE_PATH
     
-    # Load CSV
+    # Load CSV - handle both file paths (strings) and UploadedFile objects
     df = pd.read_csv(file_path)
     
     # Convert Activity Date to datetime

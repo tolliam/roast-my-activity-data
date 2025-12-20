@@ -34,8 +34,8 @@ def setup_page():
     st.title(APP_TITLE)
 
 
-def create_sidebar(df):
-    """Create sidebar with filters and settings.
+def create_sidebar_filters(df):
+    """Create sidebar filters for data analysis.
     
     Args:
         df: DataFrame containing activity data.
@@ -43,7 +43,8 @@ def create_sidebar(df):
     Returns:
         Tuple of (days_back, selected_activities) filter values.
     """
-    st.sidebar.header("Settings")
+    st.sidebar.markdown("---")
+    st.sidebar.header("⚙️ Filters")
     
     # Date range slider
     days_back = st.sidebar.slider(
@@ -429,19 +430,79 @@ def main():
     # Setup page
     setup_page()
     
-    # Load data
-    try:
-        df = load_strava_data(DATA_FILE_PATH)
-    except FileNotFoundError:
-        st.error(f"Data file not found: {DATA_FILE_PATH}")
-        st.info("Please ensure your activities.csv file is in the data/ directory")
-        return
-    except Exception as e:
-        st.error(f"Error loading data: {str(e)}")
+    # Initialize session state for data
+    if 'df' not in st.session_state:
+        st.session_state.df = None
+    if 'data_loaded' not in st.session_state:
+        st.session_state.data_loaded = False
+    
+    # Show data source selection if data not loaded
+    if not st.session_state.data_loaded:
+        st.markdown("### 👋 Welcome! Let's get started with your activity data")
+        st.markdown("---")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 📁 Upload Your Data")
+            st.markdown("Upload your Strava activities CSV file")
+            uploaded_file = st.file_uploader(
+                "Choose a CSV file",
+                type=['csv'],
+                help="Export your activities from Strava and upload the CSV file here",
+                label_visibility="collapsed"
+            )
+            
+            if uploaded_file is not None:
+                with st.spinner("Loading your data..."):
+                    try:
+                        st.session_state.df = load_strava_data(uploaded_file)
+                        st.session_state.data_loaded = True
+                    except Exception as e:
+                        st.error(f"Error loading uploaded file: {str(e)}")
+                        st.info("Please ensure your CSV has the required columns")
+                        return
+            
+            st.markdown("""
+            **How to get your Strava data:**
+            1. Go to Strava.com → Settings → My Account
+            2. Click "Get Your Data" or "Download Your Data"
+            3. Wait for the email with your data export
+            4. Upload the activities.csv file here
+            """)
+        
+        with col2:
+            st.markdown("#### 📊 Use Demo Data")
+            st.markdown("Try the app with sample data")
+            if st.button("Load Demo Data", use_container_width=True, type="primary"):
+                with st.spinner("Loading demo data..."):
+                    try:
+                        st.session_state.df = load_strava_data(DATA_FILE_PATH)
+                        st.session_state.data_loaded = True
+                    except FileNotFoundError:
+                        st.error(f"Demo data file not found: {DATA_FILE_PATH}")
+                        st.info("Please upload your own CSV file using the option on the left")
+                    except Exception as e:
+                        st.error(f"Error loading demo data: {str(e)}")
+        
+        # If data was just loaded, rerun to show the dashboard
+        if st.session_state.data_loaded:
+            st.rerun()
+        
         return
     
+    # Data is loaded, show the main app
+    df = st.session_state.df
+    
+    # Add button to change data source in sidebar
+    with st.sidebar:
+        if st.button("📁 Change Data Source"):
+            st.session_state.data_loaded = False
+            st.session_state.df = None
+            st.rerun()
+    
     # Create sidebar filters
-    days_back, selected_activities = create_sidebar(df)
+    days_back, selected_activities = create_sidebar_filters(df)
     
     # Apply filters
     df = filter_by_activities(df, selected_activities)

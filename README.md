@@ -10,7 +10,12 @@ A comprehensive, professional-grade activity analytics dashboard built with Stre
 
 ## ✨ Features
 
-### 📊 Recent Activity Analysis
+### � Data Upload
+- **Upload Your Own Data**: Upload any Strava activities CSV file directly in the app
+- **No Setup Required**: Works for anyone without installing Python locally
+- **Ready for Deployment**: Deploy to Streamlit Cloud for public access
+
+### �📊 Recent Activity Analysis
 - **Customizable Time Ranges**: Filter activities from 1-90 days
 - **Activity Type Filtering**: Focus on specific activity types (Running, Cycling, Swimming, etc.)
 - **Interactive Charts**: Distance timelines, activity distribution pie charts, duration histograms
@@ -44,7 +49,19 @@ A comprehensive, professional-grade activity analytics dashboard built with Stre
 
 ## 🚀 Quick Start
 
-### Installation
+### Option 1: Use the Deployed App (No Installation!)
+
+The easiest way to use this app is via Streamlit Cloud:
+1. Visit the deployed app (URL provided after deployment)
+2. Click "Upload CSV" in the sidebar
+3. Upload your Strava activities.csv file
+4. Start analyzing!
+
+👉 **See [DEPLOYMENT.md](DEPLOYMENT.md) for deployment instructions**
+
+### Option 2: Run Locally
+
+#### Installation
 
 1. **Clone the repository**
    ```bash
