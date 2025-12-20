@@ -22,11 +22,11 @@ from src.utils import (
     calculate_fun_metrics, calculate_cheeky_metrics, get_personal_records, 
     calculate_summary_stats, format_metric_display, calculate_exercise_obsession_score
 )
-from src.visualizations import (
+from src.visualizations_altair import (
     create_distance_timeline, create_activity_type_pie,
     create_duration_histogram, create_cumulative_distance_chart,
-    create_quarterly_trends_chart, create_stacked_activity_chart,
-    create_quarterly_bar_chart, create_activity_heatmap, create_exercise_obsession_gauge
+    create_activity_trends_chart, create_stacked_activity_chart,
+    create_activity_heatmap, create_exercise_obsession_gauge
 )
 
 
@@ -201,15 +201,15 @@ def render_recent_activity_tab(df_filtered, days_back, theme):
     
     with col1:
         fig_distance = create_distance_timeline(df_filtered, theme=theme)
-        st.plotly_chart(fig_distance, width='stretch')
+        st.altair_chart(fig_distance, width='stretch')
     
     with col2:
         fig_type = create_activity_type_pie(df_filtered, theme=theme)
-        st.plotly_chart(fig_type, width='stretch')
+        st.altair_chart(fig_type, width='stretch')
     
     # Duration distribution
     fig_duration = create_duration_histogram(df_filtered, theme=theme)
-    st.plotly_chart(fig_duration, width='stretch')
+    st.altair_chart(fig_duration, width='stretch')
     
     # Recent activities table
     st.subheader("Recent Activities")
@@ -327,9 +327,9 @@ def render_cheeky_metrics(cheeky):
             help="828m - World's tallest building (Emaar)"
         )
     
-    # Food & Entertainment
+    # Food
     st.markdown("#### 🍕 You Earned It")
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     
     with col1:
         st.metric(
@@ -352,18 +352,18 @@ def render_cheeky_metrics(cheeky):
             help="Standard 12oz beers (USDA avg: 150 cal)"
         )
     
-    with col4:
+    # Entertainment
+    st.markdown("#### 🎬 Entertainment Equivalents")
+    col1, col2 = st.columns(2)
+    
+    with col1:
         st.metric(
             "📺 Friends Episodes",
             f"{cheeky['friends_episodes']:,.0f}",
             help="22-min episodes you could've watched instead (NBC avg runtime)"
         )
     
-    # Bottom row fun facts
-    st.markdown("#### 🎬 Entertainment Equivalents")
-    col1, col2 = st.columns(2)
-    
-    with col1:
+    with col2:
         if cheeky['lotr_trilogies'] >= 1:
             st.metric(
                 "🧙‍♂️ LOTR Extended Trilogies",
@@ -396,7 +396,7 @@ def render_fun_tab(df, theme=None):
     col1, col2 = st.columns([1, 1])
     with col1:
         fig_gauge = create_exercise_obsession_gauge(obsession_score, obsession_level, theme=theme)
-        st.plotly_chart(fig_gauge, width='stretch')
+        st.altair_chart(fig_gauge, width='stretch')
     
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
@@ -464,17 +464,17 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
         # Cumulative distance chart
         fig_cumulative = create_cumulative_distance_chart(period_data, interval=time_interval, theme=theme)
         if fig_cumulative:
-            st.plotly_chart(fig_cumulative, width='stretch')
+            st.altair_chart(fig_cumulative, width='stretch')
         
         # Trends chart
-        fig_trends = create_quarterly_trends_chart(period_data, interval=time_interval, theme=theme)
+        fig_trends = create_activity_trends_chart(period_data, interval=time_interval, theme=theme)
         if fig_trends:
-            st.plotly_chart(fig_trends, width='stretch')
+            st.altair_chart(fig_trends, width='stretch')
         
         # Stacked activity chart
         fig_stacked = create_stacked_activity_chart(stacked_data, interval=time_interval, theme=theme)
         if fig_stacked:
-            st.plotly_chart(fig_stacked, width='stretch')
+            st.altair_chart(fig_stacked, width='stretch')
         else:
             st.info("Activity composition chart requires multiple time periods")
     else:
@@ -500,9 +500,20 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
     
     # Calendar heatmap
     st.header("📅 Activity Calendar")
-    current_year = df["Activity Date"].dt.year.max()
-    fig_heatmap = create_activity_heatmap(df, current_year)
-    st.plotly_chart(fig_heatmap, width='stretch')
+    
+    # Get all years with data
+    available_years = sorted(df["Activity Date"].dt.year.unique(), reverse=True)
+    
+    # Year selector with toggle buttons
+    selected_year = st.radio(
+        "Select year",
+        options=available_years,
+        horizontal=True,
+        label_visibility="collapsed"
+    )
+    
+    fig_heatmap = create_activity_heatmap(df, selected_year, theme=theme)
+    st.altair_chart(fig_heatmap, width='stretch')
 
 
 def main():

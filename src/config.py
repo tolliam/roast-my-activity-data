@@ -50,6 +50,26 @@ ACTIVITY_GROUP_MAP: Dict[str, str] = {
 # Custom CSS Styling with Dark Mode Support
 CUSTOM_CSS = """
     <style>
+        /* Compact horizontal radio buttons for year selector */
+        .stRadio > div {
+            gap: 0.3rem !important;
+        }
+        
+        .stRadio > div > label {
+            padding: 0.2rem 0.5rem !important;
+            font-size: 12px !important;
+            min-height: unset !important;
+        }
+        
+        .stRadio > div > label > div:first-child {
+            width: 14px !important;
+            height: 14px !important;
+        }
+        
+        .stRadio > div > label p {
+            font-size: 12px !important;
+        }
+        
         /* Mobile responsive adjustments */
         @media (max-width: 768px) {
             section[data-testid="stSidebar"] {
