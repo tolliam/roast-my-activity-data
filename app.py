@@ -4,6 +4,7 @@ This is the entry point for the activity analytics dashboard.
 Run with: streamlit run app.py
 """
 
+import pandas as pd
 import streamlit as st
 from datetime import datetime
 
@@ -200,15 +201,15 @@ def render_recent_activity_tab(df_filtered, days_back, theme):
     
     with col1:
         fig_distance = create_distance_timeline(df_filtered, theme=theme)
-        st.plotly_chart(fig_distance, use_container_width=True)
+        st.plotly_chart(fig_distance, width='stretch')
     
     with col2:
         fig_type = create_activity_type_pie(df_filtered, theme=theme)
-        st.plotly_chart(fig_type, use_container_width=True)
+        st.plotly_chart(fig_type, width='stretch')
     
     # Duration distribution
     fig_duration = create_duration_histogram(df_filtered, theme=theme)
-    st.plotly_chart(fig_duration, use_container_width=True)
+    st.plotly_chart(fig_duration, width='stretch')
     
     # Recent activities table
     st.subheader("Recent Activities")
@@ -227,7 +228,7 @@ def render_recent_activity_tab(df_filtered, days_back, theme):
     
     st.dataframe(
         display_df,
-        use_container_width=True,
+        width='stretch',
         hide_index=True
     )
 
@@ -396,7 +397,7 @@ def render_fun_tab(df, theme=None):
     col1, col2 = st.columns([1, 1])
     with col1:
         fig_gauge = create_exercise_obsession_gauge(obsession_score, obsession_level, theme=theme)
-        st.plotly_chart(fig_gauge, use_container_width=True)
+        st.plotly_chart(fig_gauge, width='stretch')
     
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
@@ -464,17 +465,17 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
         # Cumulative distance chart
         fig_cumulative = create_cumulative_distance_chart(period_data, interval=time_interval, theme=theme)
         if fig_cumulative:
-            st.plotly_chart(fig_cumulative, use_container_width=True)
+            st.plotly_chart(fig_cumulative, width='stretch')
         
         # Trends chart
         fig_trends = create_quarterly_trends_chart(period_data, interval=time_interval, theme=theme)
         if fig_trends:
-            st.plotly_chart(fig_trends, use_container_width=True)
+            st.plotly_chart(fig_trends, width='stretch')
         
         # Stacked activity chart
         fig_stacked = create_stacked_activity_chart(stacked_data, interval=time_interval, theme=theme)
         if fig_stacked:
-            st.plotly_chart(fig_stacked, use_container_width=True)
+            st.plotly_chart(fig_stacked, width='stretch')
         else:
             st.info("Activity composition chart requires multiple time periods")
     else:
@@ -486,19 +487,23 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
     pr_cols = st.columns(4)
     
     with pr_cols[0]:
-        st.metric("Longest Distance", f"{int(prs['longest_distance'])} km")
+        distance = prs['longest_distance']
+        st.metric("Longest Distance", f"{int(distance) if not pd.isna(distance) else 0} km")
     with pr_cols[1]:
-        st.metric("Longest Duration", f"{int(prs['longest_duration'])} min")
+        duration = prs['longest_duration']
+        st.metric("Longest Duration", f"{int(duration) if not pd.isna(duration) else 0} min")
     with pr_cols[2]:
-        st.metric("Most Elevation", f"{int(prs['most_elevation']):,} m")
+        elevation = prs['most_elevation']
+        st.metric("Most Elevation", f"{int(elevation) if not pd.isna(elevation) else 0:,} m")
     with pr_cols[3]:
-        st.metric("Fastest Speed", f"{int(prs['fastest_speed'])} km/h")
+        speed = prs['fastest_speed']
+        st.metric("Fastest Speed", f"{int(speed) if not pd.isna(speed) else 0} km/h")
     
     # Calendar heatmap
     st.header("📅 Activity Calendar")
     current_year = df["Activity Date"].dt.year.max()
     fig_heatmap = create_activity_heatmap(df, current_year)
-    st.plotly_chart(fig_heatmap, use_container_width=True)
+    st.plotly_chart(fig_heatmap, width='stretch')
 
 
 def main():
@@ -550,7 +555,7 @@ def main():
         with col2:
             st.markdown("#### 📊 Use Demo Data")
             st.markdown("Try the app with sample data")
-            if st.button("Load Demo Data", use_container_width=True, type="primary"):
+            if st.button("Load Demo Data", width='stretch', type="primary"):
                 with st.spinner("Loading demo data..."):
                     try:
                         st.session_state.df = load_strava_data(DATA_FILE_PATH)
@@ -573,7 +578,7 @@ def main():
     # Add button to change data source in sidebar
     with st.sidebar:
         st.title("⚙️ Settings")
-        if st.button("📁 Change Data", use_container_width=True):
+        if st.button("📁 Change Data", width='stretch'):
             st.session_state.data_loaded = False
             st.session_state.df = None
             st.rerun()
