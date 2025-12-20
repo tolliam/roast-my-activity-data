@@ -261,8 +261,7 @@ def render_cheeky_metrics(cheeky):
         cheeky: Dictionary of cheeky metrics from calculate_cheeky_metrics.
     """
     st.markdown("---")
-    st.subheader("🤪 Alternative Reality Check")
-    st.markdown("*Because serious stats are boring...*")
+    st.subheader("📏 In Perspective")
     
     # Distance achievements
     st.markdown("#### 🏃 Distance Hall of Fame")
