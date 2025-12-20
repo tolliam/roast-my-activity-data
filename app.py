@@ -34,6 +34,34 @@ def setup_page():
     """Configure Streamlit page settings and custom styling."""
     st.set_page_config(page_title=APP_TITLE, layout="wide")
     st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+    
+    # Inject JavaScript to detect system dark mode preference
+    st.markdown("""
+        <script>
+            const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            const streamlitDoc = window.parent.document;
+            
+            function updateDarkModeIndicator(isDark) {
+                // Store in localStorage so we can detect it
+                localStorage.setItem('prefersDarkMode', isDark ? 'true' : 'false');
+                // Add a class to body for CSS detection
+                if (isDark) {
+                    streamlitDoc.body.classList.add('system-dark-mode');
+                } else {
+                    streamlitDoc.body.classList.remove('system-dark-mode');
+                }
+            }
+            
+            // Initial check
+            updateDarkModeIndicator(darkModeMediaQuery.matches);
+            
+            // Listen for changes
+            darkModeMediaQuery.addEventListener('change', (e) => {
+                updateDarkModeIndicator(e.matches);
+            });
+        </script>
+    """, unsafe_allow_html=True)
+    
     st.title(APP_TITLE)
 
 
@@ -142,8 +170,32 @@ def create_sidebar_filters(df):
         help="Choose how to group activities in time series charts"
     )
     
-    # Theme selector
-    use_dark_mode = st.sidebar.checkbox("Dark Mode", value=False, help="Toggle dark mode for charts")
+    # Theme selector - try to detect Streamlit's theme or URL param
+    # Check URL param first (e.g., ?dark=1)
+    query_params = st.query_params
+    url_dark = query_params.get("dark", "0") == "1"
+    
+    # Then check Streamlit's theme config
+    try:
+        streamlit_theme = st.get_option("theme.base")
+        config_dark = streamlit_theme == "dark"
+    except:
+        config_dark = False
+    
+    # Default to URL param, then config, then False
+    default_dark = url_dark or config_dark
+    
+    # Initialize session state for dark mode if not set
+    if "use_dark_mode" not in st.session_state:
+        st.session_state.use_dark_mode = default_dark
+    
+    use_dark_mode = st.sidebar.checkbox(
+        "🌙 Dark Mode", 
+        value=st.session_state.use_dark_mode, 
+        help="Toggle dark mode for charts. Tip: Add ?dark=1 to URL for auto dark mode",
+        key="dark_mode_toggle"
+    )
+    st.session_state.use_dark_mode = use_dark_mode
     
     theme = PLOTLY_DARK_THEME if use_dark_mode else PLOTLY_LIGHT_THEME
     st.session_state.theme = theme
