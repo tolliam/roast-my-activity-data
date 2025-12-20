@@ -10,12 +10,12 @@ A comprehensive, professional-grade activity analytics dashboard built with Stre
 
 ## ✨ Features
 
-### � Data Upload
+### Data Upload
 - **Upload Your Own Data**: Upload any Strava activities CSV file directly in the app
 - **No Setup Required**: Works for anyone without installing Python locally
 - **Ready for Deployment**: Deploy to Streamlit Cloud for public access
 
-### �📊 Recent Activity Analysis
+### 📊 Recent Activity Analysis
 - **Customizable Time Ranges**: Filter activities from 1-90 days
 - **Activity Type Filtering**: Focus on specific activity types (Running, Cycling, Swimming, etc.)
 - **Interactive Charts**: Distance timelines, activity distribution pie charts, duration histograms
@@ -37,7 +37,6 @@ A comprehensive, professional-grade activity analytics dashboard built with Stre
 - **Quarterly Breakdown**: Detailed statistics by quarter
 
 ### 🎨 Professional Design
-- UK Government Analysis Function accessible color palette
 - Responsive layout with customizable sidebar
 - Clean, modern UI with gradient styling
 - Professional data tables and metric cards
@@ -217,7 +216,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Built with [Streamlit](https://streamlit.io/)
 - Visualizations powered by [Plotly](https://plotly.com/)
 - Data processing with [Pandas](https://pandas.pydata.org/)
-- Color palette based on UK Government Analysis Function standards
+- Color palette based on [UK Government Analysis Function](https://analysisfunction.civilservice.gov.uk/policy-store/codes-for-accessible-colours/)
 
 ## 📧 Support
 
