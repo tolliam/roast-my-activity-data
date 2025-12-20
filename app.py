@@ -542,7 +542,12 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
         st.metric("Longest Distance", f"{int(distance) if not pd.isna(distance) else 0} km")
     with pr_cols[1]:
         duration = prs['longest_duration']
-        st.metric("Longest Duration", f"{int(duration) if not pd.isna(duration) else 0} min")
+        if not pd.isna(duration):
+            hours = int(duration // 60)
+            mins = int(duration % 60)
+            st.metric("Longest Duration", f"{hours}h {mins}m")
+        else:
+            st.metric("Longest Duration", "0h 0m")
     with pr_cols[2]:
         elevation = prs['most_elevation']
         st.metric("Most Elevation", f"{int(elevation) if not pd.isna(elevation) else 0:,} m")
@@ -644,10 +649,6 @@ def main():
             st.session_state.data_loaded = False
             st.session_state.df = None
             st.rerun()
-        
-        # Version at bottom of sidebar
-        st.markdown("---")
-        st.caption(f"v{VERSION}")
     
     # Create sidebar filters
     days_back, selected_activities, time_interval, theme = create_sidebar_filters(df)
@@ -667,6 +668,10 @@ def main():
     
     with tab_fun:
         render_fun_tab(df, theme)
+    
+    # Footer bar with version
+    st.markdown("---")
+    st.markdown(f"<div style='text-align: center; padding: 10px; font-size: 0.8rem;'>v{VERSION}</div>", unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
