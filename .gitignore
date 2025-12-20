@@ -126,7 +126,7 @@ dmypy.json
 .streamlit/
 
 # Data files (keep structure but ignore actual data)
-data/*.csv
+# data/*.csv
 data/*.gpx
 data/*.fit
 data/*.tcx

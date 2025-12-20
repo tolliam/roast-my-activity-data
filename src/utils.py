@@ -117,10 +117,10 @@ def calculate_cheeky_metrics(df: pd.DataFrame) -> Dict[str, any]:
     
     # Distance comparisons
     banana_length_m = 0.18  # Average banana is 18cm (USDA)
-    football_field_m = 91.44  # American football field in meters (NFL official)
+    football_pitch_m = 105  # Standard football pitch length (FIFA/Premier League)
     marathons = total_distance / 42.195  # Official marathon distance (IAAF)
     bananas = (total_distance * 1000) / banana_length_m
-    football_fields = (total_distance * 1000) / football_field_m
+    football_pitches = (total_distance * 1000) / football_pitch_m
     
     # Elevation comparisons
     eiffel_tower_m = 330  # To the tip (Paris official)
@@ -162,7 +162,7 @@ def calculate_cheeky_metrics(df: pd.DataFrame) -> Dict[str, any]:
         # Distance
         'marathons': marathons,
         'bananas': bananas,
-        'football_fields': football_fields,
+        'football_pitches': football_pitches,
         
         # Elevation
         'eiffel_towers': eiffel_towers,

@@ -9,11 +9,13 @@ from datetime import datetime
 
 from src.config import (
     APP_TITLE, CUSTOM_CSS, DEFAULT_DAYS_BACK, 
-    MIN_DAYS_BACK, MAX_DAYS_BACK, DATA_FILE_PATH
+    MIN_DAYS_BACK, MAX_DAYS_BACK, DATA_FILE_PATH,
+    PLOTLY_LIGHT_THEME, PLOTLY_DARK_THEME
 )
 from src.data_loader import (
     load_strava_data, filter_by_activities, 
-    filter_by_date_range, get_quarterly_stats, get_monthly_trends
+    filter_by_date_range, get_quarterly_stats, get_monthly_trends,
+    get_aggregated_trends, get_stacked_activity_data
 )
 from src.utils import (
     calculate_fun_metrics, calculate_cheeky_metrics, get_personal_records, 
@@ -34,6 +36,33 @@ def setup_page():
     st.title(APP_TITLE)
 
 
+def detect_dark_mode():
+    """Detect if user has dark mode enabled.
+    
+    Returns:
+        Dict containing theme colors for plotly charts.
+    """
+    # Check if dark mode query param exists or use default detection
+    query_params = st.query_params
+    
+    # Use JavaScript to detect system preference (fallback to light mode)
+    dark_mode_js = """
+    <script>
+        const darkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (darkMode) {
+            window.parent.postMessage({type: 'streamlit:setComponentValue', value: true}, '*');
+        }
+    </script>
+    """
+    
+    # For simplicity, check session state or default to light
+    # Users can toggle via browser dark mode settings
+    if 'theme' not in st.session_state:
+        st.session_state.theme = PLOTLY_LIGHT_THEME
+    
+    return st.session_state.theme
+
+
 def create_sidebar_filters(df):
     """Create sidebar filters for data analysis.
     
@@ -41,29 +70,84 @@ def create_sidebar_filters(df):
         df: DataFrame containing activity data.
         
     Returns:
-        Tuple of (days_back, selected_activities) filter values.
+        Tuple of (days_back, selected_activities, time_interval, theme) filter values.
     """
-    st.sidebar.markdown("---")
-    st.sidebar.header("⚙️ Filters")
-    
     # Date range slider
     days_back = st.sidebar.slider(
-        "Show activities from last N days",
+        "Last N Days for Recent Activity Stats",
         MIN_DAYS_BACK,
         MAX_DAYS_BACK,
         DEFAULT_DAYS_BACK
     )
     
-    # Activity type filter
-    available_activity_groups = sorted(df["Activity Group"].unique())
-    selected_activities = st.sidebar.multiselect(
-        "Filter by Activity Type",
-        options=available_activity_groups,
-        default=available_activity_groups,
-        max_selections=6
+    # Initialize preset state
+    if 'activity_preset' not in st.session_state:
+        st.session_state.activity_preset = "jackofall"
+    
+    # Activity mode selector
+    mode_options = {
+        "🎯 All Rounder": "jackofall",
+        "🏃 Runner": "runner",
+        "🚴 Cyclist": "cyclist",
+        "🏊 Swimmer": "swimmer",
+        "🏋️ Gym Rat": "gym",
+        "🏅 Triathlete": "triathlete"
+    }
+    
+    selected_mode = st.sidebar.selectbox(
+        "Mode",
+        options=list(mode_options.keys()),
+        index=0  # Default to Jack of All
     )
     
-    return days_back, selected_activities
+    st.session_state.activity_preset = mode_options[selected_mode]
+    
+    # Preset mappings
+    presets = {
+        "runner": ["Running", "Walking"],
+        "cyclist": ["Cycling"],
+        "swimmer": ["Swimming"],
+        "gym": ["Strength"],
+        "triathlete": ["Running", "Cycling", "Swimming"],
+        "jackofall": None  # None means all activities
+    }
+    
+    # Activity type filter with expander
+    available_activity_groups = sorted(df["Activity Group"].unique())
+    
+    # Determine selected activities based on preset
+    if st.session_state.activity_preset and st.session_state.activity_preset in presets:
+        preset_activities = presets[st.session_state.activity_preset]
+        if preset_activities is None:  # Jack of All
+            selected_activities = available_activity_groups
+        else:
+            selected_activities = [act for act in preset_activities if act in available_activity_groups]
+            if not selected_activities:
+                selected_activities = available_activity_groups
+    else:
+        selected_activities = available_activity_groups
+    
+    # Time series interval selector
+    time_interval = st.sidebar.selectbox(
+        "Time Series Interval",
+        options=["monthly", "quarterly", "annual", "alltime"],
+        format_func=lambda x: {
+            "monthly": "Monthly",
+            "quarterly": "Quarterly", 
+            "annual": "Annual",
+            "alltime": "All Time"
+        }[x],
+        index=1,  # Default to quarterly
+        help="Choose how to group activities in time series charts"
+    )
+    
+    # Theme selector
+    use_dark_mode = st.sidebar.checkbox("Dark Mode", value=False, help="Toggle dark mode for charts")
+    
+    theme = PLOTLY_DARK_THEME if use_dark_mode else PLOTLY_LIGHT_THEME
+    st.session_state.theme = theme
+    
+    return days_back, selected_activities, time_interval, theme
 
 
 def render_summary_metrics(stats, col_config=None):
@@ -97,12 +181,13 @@ def render_summary_metrics(stats, col_config=None):
                     st.metric(label, f"{int(value):,} m")
 
 
-def render_recent_activity_tab(df_filtered, days_back):
+def render_recent_activity_tab(df_filtered, days_back, theme):
     """Render the Recent Activity tab content.
     
     Args:
         df_filtered: Filtered DataFrame for recent period.
         days_back: Number of days in the filter.
+        theme: Dict containing theme colors for charts.
     """
     st.subheader(f"Last {days_back} Days")
     
@@ -114,15 +199,15 @@ def render_recent_activity_tab(df_filtered, days_back):
     col1, col2 = st.columns(2)
     
     with col1:
-        fig_distance = create_distance_timeline(df_filtered)
+        fig_distance = create_distance_timeline(df_filtered, theme=theme)
         st.plotly_chart(fig_distance, use_container_width=True)
     
     with col2:
-        fig_type = create_activity_type_pie(df_filtered)
+        fig_type = create_activity_type_pie(df_filtered, theme=theme)
         st.plotly_chart(fig_type, use_container_width=True)
     
     # Duration distribution
-    fig_duration = create_duration_histogram(df_filtered)
+    fig_duration = create_duration_histogram(df_filtered, theme=theme)
     st.plotly_chart(fig_duration, use_container_width=True)
     
     # Recent activities table
@@ -154,7 +239,7 @@ def render_fun_metrics(metrics):
         metrics: Dictionary of fun metrics from calculate_fun_metrics.
     """
     st.markdown("")  # Spacing
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2 = st.columns(2)
     
     with col1:
         st.metric(
@@ -164,16 +249,8 @@ def render_fun_metrics(metrics):
         )
     
     with col2:
-        display, help_text = format_metric_display(metrics['times_around_world'], 'earth')
-        st.metric("🌍 Around Earth", display, help=help_text)
-    
-    with col3:
         display, help_text = format_metric_display(metrics['days_active'], 'time')
         st.metric("⏱️ Time Active", display, help=help_text)
-    
-    with col4:
-        display, help_text = format_metric_display(metrics['times_up_everest'], 'everest')
-        st.metric("🏔️ Up Mt Everest", display, help=help_text)
 
 
 def render_cheeky_metrics(cheeky):
@@ -199,9 +276,9 @@ def render_cheeky_metrics(cheeky):
     
     with col2:
         st.metric(
-            "🏈 Football Fields",
-            f"{cheeky['football_fields']:,.0f}",
-            help="NFL official fields (91.44m each)"
+            "⚽ Football Pitches",
+            f"{cheeky['football_pitches']:,.0f}",
+            help="Standard pitch length: 105m (FIFA/Premier League)"
         )
     
     with col3:
@@ -283,6 +360,7 @@ def render_cheeky_metrics(cheeky):
         )
     
     # Bottom row fun facts
+    st.markdown("#### 🎬 Entertainment Equivalents")
     col1, col2 = st.columns(2)
     
     with col1:
@@ -299,49 +377,25 @@ def render_cheeky_metrics(cheeky):
                 f"{pct:.0f}%",
                 help="Progress through extended trilogy"
             )
-    
-    with col2:
-        # Cheeky summary
-        if cheeky['big_macs'] > 1000:
-            verdict = "🎉 That's a LOT of Big Macs!"
-        elif cheeky['marathons'] > 100:
-            verdict = "🏆 Ultra marathon legend!"
-        elif cheeky['friends_episodes'] > 1000:
-            verdict = "📺 You chose sweat over sitcoms!"
-        else:
-            verdict = "💪 Keep crushing it!"
-        
-        st.metric(
-            "🎯 Verdict",
-            verdict,
-            help="Our totally scientific assessment"
-        )
 
 
-def render_alltime_tab(df):
-    """Render the All-Time Analysis tab content.
+def render_fun_tab(df, theme=None):
+    """Render the Just for Fun tab content.
     
     Args:
         df: Full DataFrame containing all activity data.
+        theme: Dict containing theme colors for charts.
     """
-    st.markdown("*Showing data from all your activities*")
-    
-    # All-time summary metrics
-    stats = calculate_summary_stats(df)
-    render_summary_metrics(stats)
-    
-    # Fun comparative metrics
-    fun_metrics = calculate_fun_metrics(df)
-    render_fun_metrics(fun_metrics)
+    if theme is None:
+        theme = PLOTLY_LIGHT_THEME
     
     # Exercise obsession meter
-    st.markdown("---")
     st.header("🔥 Exercise-oholic Meter")
     obsession_score, obsession_level, obsession_desc = calculate_exercise_obsession_score(df)
     
     col1, col2 = st.columns([1, 1])
     with col1:
-        fig_gauge = create_exercise_obsession_gauge(obsession_score, obsession_level)
+        fig_gauge = create_exercise_obsession_gauge(obsession_score, obsession_level, theme=theme)
         st.plotly_chart(fig_gauge, use_container_width=True)
     
     with col2:
@@ -357,25 +411,74 @@ def render_alltime_tab(df):
     st.markdown("---")
     cheeky_metrics = calculate_cheeky_metrics(df)
     render_cheeky_metrics(cheeky_metrics)
+
+
+def render_alltime_tab(df, time_interval="quarterly", theme=None):
+    """Render the All-Time Analysis tab content.
+    
+    Args:
+        df: Full DataFrame containing all activity data.
+        time_interval: Time interval for aggregating time series data.
+        theme: Dict containing theme colors for charts.
+    """
+    if theme is None:
+        theme = PLOTLY_LIGHT_THEME
+    
+    # All-time summary metrics
+    stats = calculate_summary_stats(df)
+    render_summary_metrics(stats)
+    
+    # Epic achievement metrics
+    st.markdown("")
+    fun_metrics = calculate_fun_metrics(df)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            "📅 Activities/Week",
+            f"{fun_metrics['activities_per_week']:.1f}",
+            help=f"Average per week across your entire activity history ({int(fun_metrics['total_activities']):,} activities)"
+        )
+    
+    with col2:
+        display, help_text = format_metric_display(fun_metrics['times_around_world'], 'earth')
+        st.metric("🌍 Around Earth", display, help=help_text)
+    
+    with col3:
+        display, help_text = format_metric_display(fun_metrics['days_active'], 'time')
+        st.metric("⏱️ Time Active", display, help=help_text)
+    
+    with col4:
+        display, help_text = format_metric_display(fun_metrics['times_up_everest'], 'everest')
+        st.metric("🏔️ Up Mt Everest", display, help=help_text)
     
     st.markdown("---")
     
-    # Get trend data
-    monthly_data = get_monthly_trends(df)
+    # Get trend data based on selected interval
+    period_data = get_aggregated_trends(df, time_interval)
+    stacked_data = get_stacked_activity_data(df, time_interval)
     
-    # Time series charts
-    fig_cumulative = create_cumulative_distance_chart(monthly_data)
-    st.plotly_chart(fig_cumulative, use_container_width=True)
-    
-    fig_trends = create_quarterly_trends_chart(monthly_data)
-    st.plotly_chart(fig_trends, use_container_width=True)
-    
-    # Stacked activity chart
-    fig_stacked = create_stacked_activity_chart(df)
-    if fig_stacked:
-        st.plotly_chart(fig_stacked, use_container_width=True)
+    # Time series charts - only show if not alltime single point
+    if time_interval != "alltime":
+        # Cumulative distance chart
+        fig_cumulative = create_cumulative_distance_chart(period_data, interval=time_interval, theme=theme)
+        if fig_cumulative:
+            st.plotly_chart(fig_cumulative, use_container_width=True)
+        
+        # Trends chart
+        fig_trends = create_quarterly_trends_chart(period_data, interval=time_interval, theme=theme)
+        if fig_trends:
+            st.plotly_chart(fig_trends, use_container_width=True)
+        
+        # Stacked activity chart
+        fig_stacked = create_stacked_activity_chart(stacked_data, interval=time_interval, theme=theme)
+        if fig_stacked:
+            st.plotly_chart(fig_stacked, use_container_width=True)
+        else:
+            st.info("Activity composition chart requires multiple time periods")
     else:
-        st.warning("No activity type data available")
+        st.info("📊 Select a time interval (Monthly, Quarterly, or Annual) from the sidebar to view time series charts")
     
     # Personal records
     st.header("🏆 Personal Records")
@@ -390,33 +493,6 @@ def render_alltime_tab(df):
         st.metric("Most Elevation", f"{int(prs['most_elevation']):,} m")
     with pr_cols[3]:
         st.metric("Fastest Speed", f"{int(prs['fastest_speed'])} km/h")
-    
-    # Quarterly summary
-    st.header("📊 Quarterly Summary")
-    quarterly_stats = get_quarterly_stats(df)
-    
-    fig_quarterly = create_quarterly_bar_chart(quarterly_stats)
-    st.plotly_chart(fig_quarterly, use_container_width=True)
-    
-    st.subheader("Quarterly Statistics")
-    
-    # Create formatted dataframe for display
-    display_quarterly = quarterly_stats[[
-        "Quarter", "Activity Count", "Total Distance (km)",
-        "Total Duration (hours)", "Total Elevation (m)"
-    ]].copy()
-    
-    # Format numeric columns
-    display_quarterly["Activity Count"] = display_quarterly["Activity Count"].apply(lambda x: f"{int(x):,}")
-    display_quarterly["Total Distance (km)"] = display_quarterly["Total Distance (km)"].apply(lambda x: f"{x:,.1f}")
-    display_quarterly["Total Duration (hours)"] = display_quarterly["Total Duration (hours)"].apply(lambda x: f"{x:,.1f}")
-    display_quarterly["Total Elevation (m)"] = display_quarterly["Total Elevation (m)"].apply(lambda x: f"{x:,.0f}")
-    
-    st.dataframe(
-        display_quarterly,
-        use_container_width=True,
-        hide_index=True
-    )
     
     # Calendar heatmap
     st.header("📅 Activity Calendar")
@@ -438,7 +514,7 @@ def main():
     
     # Show data source selection if data not loaded
     if not st.session_state.data_loaded:
-        st.markdown("### 👋 Welcome! Let's get started with your activity data")
+        st.markdown("### Welcome! Let's get started with your activity data")
         st.markdown("---")
         
         col1, col2 = st.columns(2)
@@ -467,8 +543,8 @@ def main():
             **How to get your Strava data:**
             1. Go to Strava.com → Settings → My Account
             2. Click "Get Your Data" or "Download Your Data"
-            3. Wait for the email with your data export
-            4. Upload the activities.csv file here
+            3. Wait for the email with your data export (comes as a zip file)
+            4. Extract the zip and upload the activities.csv file here
             """)
         
         with col2:
@@ -496,26 +572,30 @@ def main():
     
     # Add button to change data source in sidebar
     with st.sidebar:
-        if st.button("📁 Change Data Source"):
+        st.title("⚙️ Settings")
+        if st.button("📁 Change Data", use_container_width=True):
             st.session_state.data_loaded = False
             st.session_state.df = None
             st.rerun()
     
     # Create sidebar filters
-    days_back, selected_activities = create_sidebar_filters(df)
+    days_back, selected_activities, time_interval, theme = create_sidebar_filters(df)
     
     # Apply filters
     df = filter_by_activities(df, selected_activities)
     df_filtered = filter_by_date_range(df, days_back)
     
     # Create tabs
-    tab_recent, tab_alltime = st.tabs(["📊 Recent Activity", "🏆 All-Time Analysis"])
+    tab_recent, tab_alltime, tab_fun = st.tabs(["📊 Recent Activity", "🏆 All-Time Analysis", "🎉 Just for Fun"])
     
     with tab_recent:
-        render_recent_activity_tab(df_filtered, days_back)
+        render_recent_activity_tab(df_filtered, days_back, theme)
     
     with tab_alltime:
-        render_alltime_tab(df)
+        render_alltime_tab(df, time_interval, theme)
+    
+    with tab_fun:
+        render_fun_tab(df, theme)
 
 
 if __name__ == "__main__":

@@ -50,14 +50,24 @@ def load_strava_data(file_path=None) -> pd.DataFrame:
     # Convert Activity Date to datetime
     df["Activity Date"] = pd.to_datetime(df["Activity Date"])
     
+    # Remove commas from numeric columns (sometimes present in swimming distances)
+    df["Distance"] = df["Distance"].astype(str).str.replace(',', '')
+    
     # Convert numeric columns to float, handling any non-numeric values
     df["Distance"] = pd.to_numeric(df["Distance"], errors='coerce')
     df["Elapsed Time"] = pd.to_numeric(df["Elapsed Time"], errors='coerce')
     df["Elevation Gain"] = pd.to_numeric(df["Elevation Gain"], errors='coerce')
     df["Average Speed"] = pd.to_numeric(df["Average Speed"], errors='coerce')
     
+    # Handle activity types first (needed for swim distance conversion)
+    df["Activity Type"] = df["Activity Type"].fillna("Unknown")
+    df["Activity Group"] = df["Activity Type"].map(ACTIVITY_GROUP_MAP)
+    
     # Create derived columns
-    df["Distance (km)"] = df["Distance"]
+    # Swimming distances in Strava CSV are in meters, convert to km
+    df["Distance (km)"] = df["Distance"].copy()
+    df.loc[df["Activity Type"] == "Swim", "Distance (km)"] = df.loc[df["Activity Type"] == "Swim", "Distance"] / 1000
+    
     df["Duration (min)"] = df["Elapsed Time"] / 60
     df["Elevation (m)"] = df["Elevation Gain"]
     
@@ -68,10 +78,6 @@ def load_strava_data(file_path=None) -> pd.DataFrame:
     # Replace infinite or very high speeds (likely errors) with NaN
     df.loc[df["Average Speed (km/h)"] > 100, "Average Speed (km/h)"] = pd.NA
     df.loc[df["Average Speed (km/h)"] <= 0, "Average Speed (km/h)"] = pd.NA
-    
-    # Handle activity types
-    df["Activity Type"] = df["Activity Type"].fillna("Unknown")
-    df["Activity Group"] = df["Activity Type"].map(ACTIVITY_GROUP_MAP)
     
     # Drop rows with missing values in key columns
     df = df.dropna(subset=["Distance (km)", "Duration (min)"])
@@ -180,3 +186,103 @@ def get_monthly_trends(df: pd.DataFrame) -> pd.DataFrame:
     monthly_data["Rolling Avg Distance"] = monthly_data["Distance"].rolling(window=2).mean()
     
     return monthly_data
+
+
+def get_aggregated_trends(df: pd.DataFrame, interval: str = "quarterly") -> pd.DataFrame:
+    """Aggregate activity trends by specified time interval.
+    
+    Args:
+        df: DataFrame containing activity data.
+        interval: Time interval for aggregation. Options:
+            - "monthly": Monthly aggregation
+            - "quarterly": Quarterly aggregation (default)
+            - "annual": Yearly aggregation
+            - "alltime": No aggregation, single data point for all time
+            
+    Returns:
+        DataFrame with aggregated data including:
+        - Period: Time period label
+        - Distance: Total distance in km
+        - Duration: Total duration in minutes
+        - Activity Count: Number of activities
+        - Duration (hours): Total duration in hours
+        - Cumulative Distance: Running total distance
+        - Rolling Avg Distance: Moving average distance
+        
+    Examples:
+        >>> monthly_trends = get_aggregated_trends(df, "monthly")
+        >>> annual_trends = get_aggregated_trends(df, "annual")
+    """
+    df_timeline = df.copy()
+    
+    # Map interval to pandas period code
+    interval_map = {
+        "monthly": "M",
+        "quarterly": "Q",
+        "annual": "Y"
+    }
+    
+    if interval == "alltime":
+        # Single aggregation for all time
+        aggregated_data = pd.DataFrame([{
+            "Period": "All Time",
+            "Distance": df["Distance (km)"].sum(),
+            "Duration": df["Duration (min)"].sum(),
+            "Activity Count": len(df)
+        }])
+    else:
+        period_code = interval_map.get(interval, "Q")
+        df_timeline["Period"] = df_timeline["Activity Date"].dt.to_period(period_code).astype(str)
+        
+        aggregated_data = df_timeline.groupby("Period").agg({
+            "Distance (km)": "sum",
+            "Duration (min)": "sum",
+            "Activity Group": "count"
+        }).reset_index()
+        
+        aggregated_data.columns = ["Period", "Distance", "Duration", "Activity Count"]
+    
+    # Add calculated fields
+    aggregated_data["Duration (hours)"] = (aggregated_data["Duration"] / 60).round(1)
+    aggregated_data = aggregated_data.sort_values("Period")
+    aggregated_data["Cumulative Distance"] = aggregated_data["Distance"].cumsum()
+    
+    # Calculate rolling average (window size depends on interval)
+    window_size = 3 if interval == "monthly" else 2
+    aggregated_data["Rolling Avg Distance"] = aggregated_data["Distance"].rolling(window=window_size).mean()
+    
+    return aggregated_data
+
+
+def get_stacked_activity_data(df: pd.DataFrame, interval: str = "quarterly") -> pd.DataFrame:
+    """Aggregate activity type composition by time interval.
+    
+    Args:
+        df: DataFrame containing activity data with 'Activity Date' and 'Activity Group' columns.
+        interval: Time interval for aggregation ("monthly", "quarterly", "annual", "alltime").
+        
+    Returns:
+        DataFrame with columns: Period, Activity Group, Count.
+        
+    Examples:
+        >>> stacked_data = get_stacked_activity_data(df, "monthly")
+    """
+    df_timeline = df.copy()
+    
+    interval_map = {
+        "monthly": "M",
+        "quarterly": "Q",
+        "annual": "Y"
+    }
+    
+    if interval == "alltime":
+        # Single aggregation for all time
+        activity_counts = df.groupby("Activity Group").size().reset_index(name="Count")
+        activity_counts["Period"] = "All Time"
+        return activity_counts[["Period", "Activity Group", "Count"]]
+    else:
+        period_code = interval_map.get(interval, "Q")
+        df_timeline["Period"] = df_timeline["Activity Date"].dt.to_period(period_code).astype(str)
+        
+        activity_by_period = df_timeline.groupby(["Period", "Activity Group"]).size().reset_index(name="Count")
+        return activity_by_period.sort_values("Period")

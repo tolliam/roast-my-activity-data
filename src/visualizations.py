@@ -12,12 +12,13 @@ from typing import Optional
 from src.config import ACTIVITY_COLORS
 
 
-def create_exercise_obsession_gauge(score: int, level: str) -> go.Figure:
+def create_exercise_obsession_gauge(score: int, level: str, theme: dict = None) -> go.Figure:
     """Create a gauge chart showing exercise obsession level.
     
     Args:
         score: Obsession score (0-100).
         level: Level name (e.g., "Fitness Fanatic").
+        theme: Dict containing theme colors.
         
     Returns:
         Plotly gauge figure showing the obsession meter.
@@ -26,6 +27,9 @@ def create_exercise_obsession_gauge(score: int, level: str) -> go.Figure:
         >>> fig = create_exercise_obsession_gauge(75, "Fitness Fanatic")
         >>> st.plotly_chart(fig)
     """
+    from src.config import PLOTLY_LIGHT_THEME
+    if theme is None:
+        theme = PLOTLY_LIGHT_THEME
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=score,
@@ -54,19 +58,20 @@ def create_exercise_obsession_gauge(score: int, level: str) -> go.Figure:
     fig.update_layout(
         height=300,
         margin=dict(l=20, r=20, t=60, b=20),
-        paper_bgcolor='white',
-        font={'color': "#12436D", 'family': "Arial"}
+        paper_bgcolor=theme['paper_bgcolor'],
+        font={'color': theme['font_color'], 'family': "Arial"}
     )
     
     return fig
 
 
-def create_distance_timeline(df: pd.DataFrame, title: str = "Distance Per Activity") -> go.Figure:
+def create_distance_timeline(df: pd.DataFrame, title: str = "Distance Per Activity", theme: dict = None) -> go.Figure:
     """Create a line chart showing distance over time.
     
     Args:
         df: DataFrame with 'Activity Date' and 'Distance (km)' columns.
         title: Chart title.
+        theme: Dict containing theme colors.
         
     Returns:
         Plotly figure object displaying distance timeline.
@@ -75,6 +80,9 @@ def create_distance_timeline(df: pd.DataFrame, title: str = "Distance Per Activi
         >>> fig = create_distance_timeline(recent_activities)
         >>> st.plotly_chart(fig)
     """
+    from src.config import PLOTLY_LIGHT_THEME
+    if theme is None:
+        theme = PLOTLY_LIGHT_THEME
     fig = px.line(
         df.sort_values("Activity Date"),
         x="Activity Date",
@@ -87,17 +95,17 @@ def create_distance_timeline(df: pd.DataFrame, title: str = "Distance Per Activi
         marker=dict(size=6, line=dict(width=1, color='white'))
     )
     fig.update_layout(
-        plot_bgcolor='white',
-        paper_bgcolor='white',
-        font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
-        title_font=dict(size=16, color="#2c3e50"),
-        xaxis=dict(showgrid=True, gridcolor='#f0f0f0', zeroline=False),
-        yaxis=dict(showgrid=True, gridcolor='#f0f0f0', zeroline=False)
+        plot_bgcolor=theme['plot_bgcolor'],
+        paper_bgcolor=theme['paper_bgcolor'],
+        font=dict(family="Arial, sans-serif", size=12, color=theme['font_color']),
+        title_font=dict(size=16, color=theme['title_color']),
+        xaxis=dict(showgrid=True, gridcolor=theme['grid_color'], zeroline=False),
+        yaxis=dict(showgrid=True, gridcolor=theme['grid_color'], zeroline=False)
     )
     return fig
 
 
-def create_activity_type_pie(df: pd.DataFrame, title: str = "Activities by Type") -> go.Figure:
+def create_activity_type_pie(df: pd.DataFrame, title: str = "Activities by Type", theme: dict = None) -> go.Figure:
     """Create a pie chart showing activity type distribution.
     
     Args:
@@ -124,13 +132,14 @@ def create_activity_type_pie(df: pd.DataFrame, title: str = "Activities by Type"
 
 
 def create_duration_histogram(df: pd.DataFrame, title: str = "Duration Distribution", 
-                              nbins: int = 15) -> go.Figure:
+                              nbins: int = 15, theme: dict = None) -> go.Figure:
     """Create a histogram showing activity duration distribution.
     
     Args:
         df: DataFrame with 'Duration (min)' column.
         title: Chart title.
         nbins: Number of bins for the histogram.
+        theme: Dict containing theme colors.
         
     Returns:
         Plotly figure object displaying duration distribution.
@@ -139,6 +148,9 @@ def create_duration_histogram(df: pd.DataFrame, title: str = "Duration Distribut
         >>> fig = create_duration_histogram(df, nbins=20)
         >>> st.plotly_chart(fig)
     """
+    from src.config import PLOTLY_LIGHT_THEME
+    if theme is None:
+        theme = PLOTLY_LIGHT_THEME
     # Create bins for smoother distribution
     fig = go.Figure()
     
@@ -155,39 +167,51 @@ def create_duration_histogram(df: pd.DataFrame, title: str = "Duration Distribut
         title=title,
         xaxis_title="Duration (min)",
         yaxis_title="Count",
-        plot_bgcolor='white',
-        paper_bgcolor='white',
-        font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
-        title_font=dict(size=16, color="#2c3e50"),
-        xaxis=dict(showgrid=True, gridcolor='#f0f0f0', zeroline=False),
-        yaxis=dict(showgrid=True, gridcolor='#f0f0f0', zeroline=False),
+        plot_bgcolor=theme['plot_bgcolor'],
+        paper_bgcolor=theme['paper_bgcolor'],
+        font=dict(family="Arial, sans-serif", size=12, color=theme['font_color']),
+        title_font=dict(size=16, color=theme['title_color']),
+        xaxis=dict(showgrid=True, gridcolor=theme['grid_color'], zeroline=False),
+        yaxis=dict(showgrid=True, gridcolor=theme['grid_color'], zeroline=False),
         bargap=0.05
     )
     return fig
 
 
-def create_cumulative_distance_chart(monthly_data: pd.DataFrame, 
-                                    title: str = "Cumulative Distance Over Time") -> go.Figure:
+def create_cumulative_distance_chart(period_data: pd.DataFrame, 
+                                    title: str = "Cumulative Distance Over Time",
+                                    interval: str = "quarterly",
+                                    theme: dict = None) -> go.Figure:
     """Create a line chart showing cumulative distance over time.
     
     Args:
-        monthly_data: DataFrame with 'Quarter' and 'Cumulative Distance' columns.
+        period_data: DataFrame with 'Period' and 'Cumulative Distance' columns.
         title: Chart title.
+        interval: Time interval for x-axis tick formatting.
+        theme: Dict containing theme colors.
         
     Returns:
         Plotly figure object displaying cumulative distance.
         
     Examples:
-        >>> fig = create_cumulative_distance_chart(monthly_stats)
+        >>> fig = create_cumulative_distance_chart(monthly_stats, interval="monthly")
         >>> st.plotly_chart(fig)
     """
+    from src.config import PLOTLY_LIGHT_THEME
+    if theme is None:
+        theme = PLOTLY_LIGHT_THEME
+        
+    # Skip chart if only one data point (alltime)
+    if len(period_data) <= 1:
+        return None
+        
     fig = px.line(
-        monthly_data,
-        x="Quarter",
+        period_data,
+        x="Period",
         y="Cumulative Distance",
         title=title,
         markers=True,
-        labels={"Cumulative Distance": "Total Distance (km)", "Quarter": "Quarter"}
+        labels={"Cumulative Distance": "Total Distance (km)", "Period": "Period"}
     )
     fig.update_traces(
         line_color='#28A197',  # UK Gov turquoise
@@ -195,39 +219,59 @@ def create_cumulative_distance_chart(monthly_data: pd.DataFrame,
         line_width=3
     )
     fig.update_layout(
-        plot_bgcolor='white',
-        paper_bgcolor='white',
-        font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
-        title_font=dict(size=16, color="#2c3e50"),
-        xaxis=dict(showgrid=True, gridcolor='#f0f0f0', zeroline=False),
-        yaxis=dict(showgrid=True, gridcolor='#f0f0f0', zeroline=False)
+        plot_bgcolor=theme['plot_bgcolor'],
+        paper_bgcolor=theme['paper_bgcolor'],
+        font=dict(family="Arial, sans-serif", size=12, color=theme['font_color']),
+        title_font=dict(size=16, color=theme['title_color']),
+        xaxis=dict(showgrid=True, gridcolor=theme['grid_color'], zeroline=False),
+        yaxis=dict(showgrid=True, gridcolor=theme['grid_color'], zeroline=False)
     )
-    fig.update_xaxes(tickangle=0, dtick=4)  # Show every 4 quarters (yearly)
+    
+    # Adjust tick frequency based on interval
+    if interval == "quarterly":
+        fig.update_xaxes(tickangle=0, dtick=4)  # Show every 4 quarters (yearly)
+    elif interval == "monthly":
+        fig.update_xaxes(tickangle=45, dtick=6)  # Show every 6 months
+    elif interval == "annual":
+        fig.update_xaxes(tickangle=0, dtick=1)  # Show every year
+        
     return fig
 
 
-def create_quarterly_trends_chart(monthly_data: pd.DataFrame, 
-                                 title: str = "Quarterly Activity Trends") -> go.Figure:
-    """Create a multi-line chart showing quarterly activity trends.
+def create_quarterly_trends_chart(period_data: pd.DataFrame, 
+                                 title: str = "Activity Trends Over Time",
+                                 interval: str = "quarterly",
+                                 theme: dict = None) -> go.Figure:
+    """Create a multi-line chart showing activity trends over time.
     
     Args:
-        monthly_data: DataFrame with 'Quarter', 'Distance', and 'Activity Count' columns.
+        period_data: DataFrame with 'Period', 'Distance', and 'Activity Count' columns.
         title: Chart title.
+        interval: Time interval for x-axis tick formatting.
+        theme: Dict containing theme colors.
         
     Returns:
-        Plotly figure object displaying quarterly trends.
+        Plotly figure object displaying trends.
         
     Examples:
-        >>> fig = create_quarterly_trends_chart(trends_data)
+        >>> fig = create_quarterly_trends_chart(trends_data, interval="monthly")
         >>> st.plotly_chart(fig)
     """
+    from src.config import PLOTLY_LIGHT_THEME
+    if theme is None:
+        theme = PLOTLY_LIGHT_THEME
+        
+    # Skip chart if only one data point (alltime)
+    if len(period_data) <= 1:
+        return None
+        
     # Create figure with secondary y-axis
     fig = go.Figure()
     
     # Add Distance trace on primary y-axis
     fig.add_trace(go.Scatter(
-        x=monthly_data["Quarter"],
-        y=monthly_data["Distance"],
+        x=period_data["Period"],
+        y=period_data["Distance"],
         name="Distance (km)",
         mode='lines+markers',
         line=dict(color='#12436D', width=2.5),
@@ -236,8 +280,8 @@ def create_quarterly_trends_chart(monthly_data: pd.DataFrame,
     
     # Add Activity Count trace on secondary y-axis
     fig.add_trace(go.Scatter(
-        x=monthly_data["Quarter"],
-        y=monthly_data["Activity Count"],
+        x=period_data["Period"],
+        y=period_data["Activity Count"],
         name="Activity Count",
         mode='lines+markers',
         line=dict(color='#F46A25', width=2.5),
@@ -247,15 +291,15 @@ def create_quarterly_trends_chart(monthly_data: pd.DataFrame,
     
     fig.update_layout(
         title=title,
-        plot_bgcolor='white',
-        paper_bgcolor='white',
-        font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
-        title_font=dict(size=16, color="#2c3e50"),
-        xaxis=dict(showgrid=True, gridcolor='#f0f0f0', zeroline=False),
+        plot_bgcolor=theme['plot_bgcolor'],
+        paper_bgcolor=theme['paper_bgcolor'],
+        font=dict(family="Arial, sans-serif", size=12, color=theme['font_color']),
+        title_font=dict(size=16, color=theme['title_color']),
+        xaxis=dict(showgrid=True, gridcolor=theme['grid_color'], zeroline=False),
         yaxis=dict(
             title="Distance (km)",
             showgrid=True, 
-            gridcolor='#f0f0f0', 
+            gridcolor=theme['grid_color'], 
             zeroline=False
         ),
         yaxis2=dict(
@@ -267,55 +311,76 @@ def create_quarterly_trends_chart(monthly_data: pd.DataFrame,
         ),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
-    fig.update_xaxes(tickangle=0, dtick=4)  # Show every 4 quarters (yearly)
+    
+    # Adjust tick frequency based on interval
+    if interval == "quarterly":
+        fig.update_xaxes(tickangle=0, dtick=4)  # Show every 4 quarters (yearly)
+    elif interval == "monthly":
+        fig.update_xaxes(tickangle=45, dtick=6)  # Show every 6 months
+    elif interval == "annual":
+        fig.update_xaxes(tickangle=0, dtick=1)  # Show every year
+        
     return fig
 
 
-def create_stacked_activity_chart(df: pd.DataFrame, 
-                                  title: str = "Activity Type Composition Over Time") -> Optional[go.Figure]:
+def create_stacked_activity_chart(activity_data: pd.DataFrame, 
+                                  title: str = "Activity Type Composition Over Time",
+                                  interval: str = "quarterly",
+                                  theme: dict = None) -> Optional[go.Figure]:
     """Create a stacked bar chart showing activity type distribution over time.
     
     Args:
-        df: DataFrame containing activity data with 'Activity Date' and 'Activity Group' columns.
+        activity_data: DataFrame with 'Period', 'Activity Group', and 'Count' columns.
         title: Chart title.
+        interval: Time interval for x-axis tick formatting.
+        theme: Dict containing theme colors.
         
     Returns:
         Plotly figure object or None if no data available.
         
     Examples:
-        >>> fig = create_stacked_activity_chart(df)
+        >>> fig = create_stacked_activity_chart(activity_data, interval="monthly")
         >>> if fig:
         >>>     st.plotly_chart(fig)
     """
-    activity_by_quarter = df.groupby([
-        df["Activity Date"].dt.to_period("Q").astype(str), 
-        "Activity Group"
-    ]).size().reset_index(name="Count")
-    activity_by_quarter.columns = ["Quarter", "Activity Group", "Count"]
-    activity_by_quarter = activity_by_quarter.sort_values("Quarter")
+    from src.config import PLOTLY_LIGHT_THEME
+    if theme is None:
+        theme = PLOTLY_LIGHT_THEME
+        
+    if len(activity_data) == 0:
+        return None
     
-    if len(activity_by_quarter) == 0:
+    # Skip chart if only one period (alltime)
+    if len(activity_data["Period"].unique()) <= 1:
         return None
     
     fig = px.bar(
-        activity_by_quarter,
-        x="Quarter",
+        activity_data,
+        x="Period",
         y="Count",
         color="Activity Group",
         title=title,
-        labels={"Count": "Number of Activities", "Quarter": "Quarter"},
+        labels={"Count": "Number of Activities", "Period": "Period"},
         color_discrete_map=ACTIVITY_COLORS,
         barmode="stack"
     )
     fig.update_traces(marker_line_color='white', marker_line_width=0.5)
-    fig.update_xaxes(tickangle=0, dtick=4)  # Show every 4 quarters (yearly)
+    
+    # Adjust tick frequency based on interval
+    if interval == "quarterly":
+        fig.update_xaxes(tickangle=0, dtick=4)  # Show every 4 quarters (yearly)
+    elif interval == "monthly":
+        fig.update_xaxes(tickangle=45, dtick=6)  # Show every 6 months
+    elif interval == "annual":
+        fig.update_xaxes(tickangle=0, dtick=1)  # Show every year
+        
     fig.update_layout(
-        plot_bgcolor='white',
-        paper_bgcolor='white',
-        font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
-        title_font=dict(size=16, color="#2c3e50"),
+        plot_bgcolor=theme['plot_bgcolor'],
+        paper_bgcolor=theme['paper_bgcolor'],
+        font=dict(family="Arial, sans-serif", size=12, color=theme['font_color']),
+        title_font=dict(size=16, color=theme['title_color']),
         xaxis=dict(showgrid=False, zeroline=False),
-        yaxis=dict(showgrid=True, gridcolor='#f0f0f0', zeroline=False),
+        yaxis=dict(showgrid=True, gridcolor=theme['grid_color'], zeroline=False),
         hovermode="x unified",
         legend=dict(
             title="Activity Type",
@@ -408,12 +473,14 @@ def create_year_over_year_chart(df: pd.DataFrame,
 
 
 def create_quarterly_bar_chart(quarterly_stats: pd.DataFrame, 
-                               title: str = "Quarterly Distance Total") -> go.Figure:
+                               title: str = "Quarterly Distance Total",
+                               theme: dict = None) -> go.Figure:
     """Create a bar chart showing quarterly distance totals.
     
     Args:
         quarterly_stats: DataFrame with 'Quarter' and 'Total Distance (km)' columns.
         title: Chart title.
+        theme: Dict containing theme colors.
         
     Returns:
         Plotly figure object displaying quarterly bars.
@@ -422,6 +489,10 @@ def create_quarterly_bar_chart(quarterly_stats: pd.DataFrame,
         >>> fig = create_quarterly_bar_chart(stats)
         >>> st.plotly_chart(fig)
     """
+    from src.config import PLOTLY_LIGHT_THEME
+    if theme is None:
+        theme = PLOTLY_LIGHT_THEME
+        
     fig = px.bar(
         quarterly_stats.sort_values("Quarter"),
         x="Quarter",
@@ -437,12 +508,12 @@ def create_quarterly_bar_chart(quarterly_stats: pd.DataFrame,
         texttemplate='%{text:.1f}'
     )
     fig.update_layout(
-        plot_bgcolor='white',
-        paper_bgcolor='white',
-        font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
-        title_font=dict(size=16, color="#2c3e50"),
+        plot_bgcolor=theme['plot_bgcolor'],
+        paper_bgcolor=theme['paper_bgcolor'],
+        font=dict(family="Arial, sans-serif", size=12, color=theme['font_color']),
+        title_font=dict(size=16, color=theme['title_color']),
         xaxis=dict(showgrid=False, zeroline=False),
-        yaxis=dict(showgrid=True, gridcolor='#f0f0f0', zeroline=False)
+        yaxis=dict(showgrid=True, gridcolor=theme['grid_color'], zeroline=False)
     )
     return fig
 
