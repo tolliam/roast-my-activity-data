@@ -1,0 +1,12 @@
+# Keep this directory for data files
+# Add your activities.csv file here
+
+## Instructions:
+1. Export your Strava data from Strava.com
+2. Place the activities.csv file in this directory
+3. The file should be named exactly: activities.csv
+
+## Data Privacy:
+- Your data stays local on your machine
+- Nothing is uploaded or shared
+- You can delete this file anytime

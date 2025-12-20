@@ -1,0 +1,182 @@
+"""Data loading and preprocessing utilities for activity data.
+
+This module provides functions to load, clean, and transform activity
+data from CSV files into a format suitable for analysis and visualization.
+"""
+
+import pandas as pd
+from typing import Optional
+import streamlit as st
+
+from src.config import ACTIVITY_GROUP_MAP, DATA_FILE_PATH
+
+
+@st.cache_data
+def load_strava_data(file_path: Optional[str] = None) -> pd.DataFrame:
+    """Load and preprocess Strava activities from CSV file.
+    
+    This function reads the Strava activities CSV, converts data types,
+    calculates derived metrics, and maps activity types to groups.
+    
+    Args:
+        file_path: Path to the CSV file containing Strava activities.
+                  If None, uses the default path from config.
+    
+    Returns:
+        A pandas DataFrame containing preprocessed activity data with columns:
+        - Activity Date: datetime of activity
+        - Distance (km): activity distance in kilometers
+        - Duration (min): activity duration in minutes
+        - Elevation (m): elevation gain in meters
+        - Average Speed (km/h): average speed in km/h
+        - Activity Type: specific activity type
+        - Activity Group: grouped activity category
+        
+    Raises:
+        FileNotFoundError: If the CSV file cannot be found.
+        ValueError: If required columns are missing from the CSV.
+        
+    Examples:
+        >>> df = load_strava_data()
+        >>> print(df.head())
+        >>> df_custom = load_strava_data("path/to/activities.csv")
+    """
+    if file_path is None:
+        file_path = DATA_FILE_PATH
+    
+    # Load CSV
+    df = pd.read_csv(file_path)
+    
+    # Convert Activity Date to datetime
+    df["Activity Date"] = pd.to_datetime(df["Activity Date"])
+    
+    # Convert numeric columns to float, handling any non-numeric values
+    df["Distance"] = pd.to_numeric(df["Distance"], errors='coerce')
+    df["Elapsed Time"] = pd.to_numeric(df["Elapsed Time"], errors='coerce')
+    df["Elevation Gain"] = pd.to_numeric(df["Elevation Gain"], errors='coerce')
+    df["Average Speed"] = pd.to_numeric(df["Average Speed"], errors='coerce')
+    
+    # Create derived columns
+    df["Distance (km)"] = df["Distance"]
+    df["Duration (min)"] = df["Elapsed Time"] / 60
+    df["Elevation (m)"] = df["Elevation Gain"]
+    
+    # Calculate average speed from distance and time (more reliable than CSV value)
+    # Convert to km/h: (distance in km) / (time in hours)
+    df["Average Speed (km/h)"] = df["Distance (km)"] / (df["Duration (min)"] / 60)
+    
+    # Replace infinite or very high speeds (likely errors) with NaN
+    df.loc[df["Average Speed (km/h)"] > 100, "Average Speed (km/h)"] = pd.NA
+    df.loc[df["Average Speed (km/h)"] <= 0, "Average Speed (km/h)"] = pd.NA
+    
+    # Handle activity types
+    df["Activity Type"] = df["Activity Type"].fillna("Unknown")
+    df["Activity Group"] = df["Activity Type"].map(ACTIVITY_GROUP_MAP)
+    
+    # Drop rows with missing values in key columns
+    df = df.dropna(subset=["Distance (km)", "Duration (min)"])
+    
+    return df.sort_values("Activity Date", ascending=False)
+
+
+def filter_by_activities(df: pd.DataFrame, selected_activities: list[str]) -> pd.DataFrame:
+    """Filter DataFrame by selected activity groups.
+    
+    Args:
+        df: DataFrame containing activity data with 'Activity Group' column.
+        selected_activities: List of activity group names to include.
+        
+    Returns:
+        Filtered DataFrame containing only the selected activity groups.
+        
+    Examples:
+        >>> filtered_df = filter_by_activities(df, ["Running", "Cycling"])
+    """
+    return df[df["Activity Group"].isin(selected_activities)]
+
+
+def filter_by_date_range(df: pd.DataFrame, days_back: int) -> pd.DataFrame:
+    """Filter DataFrame to include only recent activities.
+    
+    Args:
+        df: DataFrame containing activity data with 'Activity Date' column.
+        days_back: Number of days to look back from today.
+        
+    Returns:
+        Filtered DataFrame containing only activities from the last N days.
+        
+    Examples:
+        >>> recent_df = filter_by_date_range(df, 30)  # Last 30 days
+    """
+    from datetime import datetime, timedelta
+    cutoff_date = datetime.now() - timedelta(days=days_back)
+    return df[df["Activity Date"] >= cutoff_date]
+
+
+def get_quarterly_stats(df: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate activity statistics by quarter.
+    
+    Args:
+        df: DataFrame containing activity data.
+        
+    Returns:
+        DataFrame with quarterly aggregated statistics including:
+        - Total Distance (km)
+        - Total Duration (hours)
+        - Total Elevation (m)
+        - Activity Count
+        
+    Examples:
+        >>> quarterly = get_quarterly_stats(df)
+        >>> print(quarterly.head())
+    """
+    df_quarterly = df.copy()
+    df_quarterly["Quarter"] = df_quarterly["Activity Date"].dt.to_period("Q")
+    
+    quarterly_stats = df_quarterly.groupby("Quarter").agg({
+        "Distance (km)": "sum",
+        "Duration (min)": "sum",
+        "Elevation (m)": "sum",
+        "Activity Type": "count"
+    }).reset_index()
+    
+    quarterly_stats.columns = [
+        "Quarter", "Total Distance (km)", "Total Duration (min)", 
+        "Total Elevation (m)", "Activity Count"
+    ]
+    quarterly_stats["Total Duration (hours)"] = (
+        quarterly_stats["Total Duration (min)"] / 60
+    ).round(1)
+    quarterly_stats["Quarter"] = quarterly_stats["Quarter"].astype(str)
+    
+    return quarterly_stats.sort_values("Quarter", ascending=False)
+
+
+def get_monthly_trends(df: pd.DataFrame) -> pd.DataFrame:
+    """Calculate monthly activity trends.
+    
+    Args:
+        df: DataFrame containing activity data.
+        
+    Returns:
+        DataFrame with monthly aggregated data for trend analysis.
+        
+    Examples:
+        >>> monthly = get_monthly_trends(df)
+    """
+    df_timeline = df.copy()
+    df_timeline["Quarter"] = df_timeline["Activity Date"].dt.to_period("Q").astype(str)
+    
+    monthly_data = df_timeline.groupby("Quarter").agg({
+        "Distance (km)": "sum",
+        "Duration (min)": "sum",
+        "Activity Group": "count"
+    }).reset_index()
+    
+    monthly_data.columns = ["Quarter", "Distance", "Duration", "Activity Count"]
+    monthly_data["Duration (hours)"] = (monthly_data["Duration"] / 60).round(1)
+    monthly_data = monthly_data.sort_values("Quarter")
+    monthly_data["Cumulative Distance"] = monthly_data["Distance"].cumsum()
+    monthly_data["Rolling Avg Distance"] = monthly_data["Distance"].rolling(window=2).mean()
+    
+    return monthly_data
