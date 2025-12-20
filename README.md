@@ -52,7 +52,7 @@ A comprehensive, professional-grade activity analytics dashboard built with Stre
 ### Option 1: Use the Deployed App (No Installation!)
 
 The easiest way to use this app is via Streamlit Cloud:
-1. Visit the deployed app (URL provided after deployment)
+1. Visit the [deployed app](https://roast-my-activity-data.streamlit.app/)
 2. Click "Upload CSV" in the sidebar
 3. Upload your Strava activities.csv file
 4. Start analyzing!
@@ -221,9 +221,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Support
 
-- **Issues**: Please use the [GitHub issue tracker](https://github.com/yourusername/roast-my-activity-data/issues)
+- **Issues**: Please use the [GitHub issue tracker](https://github.com/tolliam/roast-my-activity-data/issues)
 - **Questions**: Open a discussion on GitHub
-- **Email**: your.email@example.com
 
 ## 🚦 Project Status
 
