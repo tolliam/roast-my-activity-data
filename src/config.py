@@ -6,6 +6,9 @@ settings used throughout the application.
 
 from typing import Dict
 
+# Version
+VERSION = "0.5.0"
+
 # Application Settings
 APP_TITLE = "🔥 Roast My Activity Data"
 DEFAULT_DAYS_BACK = 30

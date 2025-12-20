@@ -11,7 +11,7 @@ from datetime import datetime
 from src.config import (
     APP_TITLE, CUSTOM_CSS, DEFAULT_DAYS_BACK, 
     MIN_DAYS_BACK, MAX_DAYS_BACK, DATA_FILE_PATH,
-    PLOTLY_LIGHT_THEME, PLOTLY_DARK_THEME
+    PLOTLY_LIGHT_THEME, PLOTLY_DARK_THEME, VERSION
 )
 from src.data_loader import (
     load_strava_data, filter_by_activities, 
@@ -592,6 +592,10 @@ def main():
             st.session_state.data_loaded = False
             st.session_state.df = None
             st.rerun()
+        
+        # Version at bottom of sidebar
+        st.markdown("---")
+        st.caption(f"v{VERSION}")
     
     # Create sidebar filters
     days_back, selected_activities, time_interval, theme = create_sidebar_filters(df)
