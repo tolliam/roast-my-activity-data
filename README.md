@@ -10,7 +10,7 @@ A comprehensive, professional-grade activity analytics dashboard built with Stre
 
 ## ✨ Features
 
-### Data Upload
+### Easy to access and customise
 - **No Setup Required**: Works for anyone without installing Python locally via [Streamlit Cloud](https://roast-my-activity-data.streamlit.app/)
 - **Upload Your Own Data**: Upload any Strava activities CSV file directly in the app (uploads are ephemeral ie not kept by the app creator or Streamlit Cloud)
 
