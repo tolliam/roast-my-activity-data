@@ -117,7 +117,9 @@ roast-my-strava/
 │   ├── ARCHITECTURE.md   # System architecture documentation
 │   └── USAGE.md          # Detailed usage guide
 ├── tests/
-│   └── test_data_loader.py  # Unit tests (placeholder)
+│   ├── test_config.py        # Tests for configuration module
+│   ├── test_data_loader.py   # Tests for data loading functions
+│   └── test_utils.py         # Tests for utility functions
 ├── requirements.txt      # Python dependencies
 ├── setup.py             # Package setup configuration
 ├── .gitignore           # Git ignore rules
@@ -153,8 +155,14 @@ For detailed usage instructions, see [docs/USAGE.md](docs/USAGE.md)
 # Install development dependencies
 pip install -r requirements.txt
 
-# Run tests (when implemented)
+# Run tests
 pytest tests/
+
+# Run tests with verbose output
+pytest tests/ -v
+
+# Run a specific test file
+pytest tests/test_data_loader.py -v
 ```
 
 ### Code Organization
