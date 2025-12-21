@@ -255,31 +255,23 @@ def render_recent_activity_tab(df_filtered, days_back, theme):
     races_df = filter_races(df_filtered)
     num_races = len(races_df)
     
-    # Render metrics with races count
-    col_config = [
-        ("Total Activities", "total_activities", ","),
-        ("Races", None, ","),  # Special handling
-        ("Total Distance", "total_distance", ",.1f"),
-        ("Total Duration", "total_duration", ",.1f"),
-        ("Total Elevation", "total_elevation", ",")
-    ]
+    # Display metrics in columns
+    cols = st.columns(5)
     
-    cols = st.columns(len(col_config))
-    for col, (label, key, fmt) in zip(cols, col_config):
-        with col:
-            if label == "Races":
-                st.metric(label, f"{num_races:,}")
-            elif key in stats:
-                value = stats[key]
-                if fmt == ",":
-                    st.metric(label, f"{int(value):,}")
-                elif fmt == ",.1f":
-                    if "Duration" in label:
-                        st.metric(label, f"{value:.1f} hrs")
-                    else:
-                        st.metric(label, f"{value:.1f} km")
-                else:
-                    st.metric(label, f"{int(value):,} m")
+    with cols[0]:
+        st.metric("Total Activities", f"{int(stats['total_activities']):,}")
+    
+    with cols[1]:
+        st.metric("Races", f"{num_races:,}")
+    
+    with cols[2]:
+        st.metric("Total Distance", f"{stats['total_distance']:.1f} km")
+    
+    with cols[3]:
+        st.metric("Total Duration", f"{stats['total_duration']:.1f} hrs")
+    
+    with cols[4]:
+        st.metric("Total Elevation", f"{int(stats['total_elevation']):,} m")
     
     # Charts
     col1, col2 = st.columns(2)

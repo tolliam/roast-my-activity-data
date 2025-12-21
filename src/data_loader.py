@@ -318,8 +318,8 @@ def filter_races(df: pd.DataFrame) -> pd.DataFrame:
     if "Competition" in df.columns:
         return df[df["Competition"]]
     else:
-        # If Competition column doesn't exist, return empty dataframe
-        return df[df.index < 0]
+        # If Competition column doesn't exist, return empty dataframe with same structure
+        return df.iloc[0:0]
 
 
 def filter_training(df: pd.DataFrame) -> pd.DataFrame:
