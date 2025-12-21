@@ -139,7 +139,7 @@ def create_sidebar_filters(df):
         "swimmer": ["Swimming"],
         "gym": ["Strength"],
         "triathlete": ["Running", "Cycling", "Swimming"],
-        "snowflake": ["Skiing"],
+        "snowflake": ["Snowflake"],
         "jackofall": None  # None means all activities
     }
     
