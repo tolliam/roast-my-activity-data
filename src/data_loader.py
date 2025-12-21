@@ -59,14 +59,15 @@ def load_strava_data(file_path=None) -> pd.DataFrame:
     df["Elevation Gain"] = pd.to_numeric(df["Elevation Gain"], errors='coerce')
     df["Average Speed"] = pd.to_numeric(df["Average Speed"], errors='coerce')
     
-    # Handle activity types first (needed for swim distance conversion)
+    # Handle activity types first (needed for swim and rowing distance conversion)
     df["Activity Type"] = df["Activity Type"].fillna("Unknown")
     df["Activity Group"] = df["Activity Type"].map(ACTIVITY_GROUP_MAP)
     
     # Create derived columns
-    # Swimming distances in Strava CSV are in meters, convert to km
+    # Swimming and Rowing distances in Strava CSV are in meters, convert to km
     df["Distance (km)"] = df["Distance"].copy()
     df.loc[df["Activity Type"] == "Swim", "Distance (km)"] = df.loc[df["Activity Type"] == "Swim", "Distance"] / 1000
+    df.loc[df["Activity Type"] == "Rowing", "Distance (km)"] = df.loc[df["Activity Type"] == "Rowing", "Distance"] / 1000
     
     df["Duration (min)"] = df["Elapsed Time"] / 60
     df["Elevation (m)"] = df["Elevation Gain"]
