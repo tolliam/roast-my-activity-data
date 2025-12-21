@@ -14,12 +14,15 @@ Complete guide to using the Roast My Activity Data analytics dashboard.
 
 ### First Time Setup
 
-1. **Export your activity data**
-   - Log into your fitness platform (e.g., Strava.com)
-   - Go to Settings → My Account
-   - Scroll to "Download or Delete Your Account"
-   - Click "Get Started" under "Download Request"
-   - Wait for email (can take a few hours)
+1. **Export your activity data from Strava**
+   - Log in to [Strava.com](https://www.strava.com/)
+   - Click on your profile picture in the top right corner → **Settings**
+   - In the left sidebar, click **My Account**
+   - Scroll down to the **"Download or Delete Your Account"** section
+   - Under "Request Your Archive", click **Get Started**
+   - Click **Request Your Archive** to confirm the request
+   - Wait for an email from Strava (typically arrives within a few hours, but can take up to 7 days)
+   - Open the email and click the download link
    - Download and extract the ZIP file
 
 2. **Prepare your data**

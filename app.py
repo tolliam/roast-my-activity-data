@@ -617,10 +617,13 @@ def main():
             
             st.markdown("""
             **How to get your Strava data:**
-            1. Go to Strava.com → Settings → My Account
-            2. Click "Get Your Data" or "Download Your Data"
-            3. Wait for the email with your data export (comes as a zip file)
-            4. Extract the zip and upload the activities.csv file here
+            1. Go to [Strava.com](https://www.strava.com/) → Settings → My Account
+            2. Scroll to **"Download or Delete Your Account"** section
+            3. Click **"Get Started"** under "Request Your Archive"
+            4. Confirm by clicking **"Request Your Archive"**
+            5. Wait for email (can take a few hours to 7 days)
+            6. Download and extract the ZIP file from the email
+            7. Upload the **activities.csv** file here
             """)
         
         with col2:

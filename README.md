@@ -83,14 +83,19 @@ The easiest way to use this app is via Streamlit Cloud:
    pip install -r requirements.txt
    ```
 
-### Getting Your Activity Data
+### Getting Your Activity Data from Strava
 
-1. Log in to your fitness tracking platform (e.g., [Strava.com](https://www.strava.com/))
-2. Go to Settings → My Account → Download or Delete Your Account
-3. Click "Get Started" under "Download Request"
-4. Wait for the email with your data export
-5. Extract the ZIP file and locate `activities.csv`
-6. Place `activities.csv` in the `data/` folder
+1. Log in to [Strava.com](https://www.strava.com/)
+2. Click on your profile picture in the top right corner → **Settings**
+3. In the left sidebar, click **My Account**
+4. Scroll down to the **"Download or Delete Your Account"** section
+5. Under "Request Your Archive", click **Get Started**
+6. Click **Request Your Archive** to confirm
+7. Wait for an email from Strava with your data export (typically arrives within a few hours, but can take up to 7 days)
+8. Once received, open the email and click the download link
+9. Extract the downloaded ZIP file
+10. Locate the `activities.csv` file inside the extracted folder
+11. Place `activities.csv` in the `data/` folder of this project
 
 ### Running the App
 
