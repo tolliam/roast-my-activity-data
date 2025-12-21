@@ -101,6 +101,8 @@ def load_strava_data(file_path=None) -> pd.DataFrame:
     
     # Detect cycling subtypes for rides
     # Apply detect_cycling_subtype to all rows where Activity Type is 'Ride'
+    # Note: No additional caching is needed here as load_strava_data is already cached by Streamlit,
+    # and the keyword matching is very fast (O(k*m) where k=keywords, m=text length)
     ride_mask = df["Activity Type"] == "Ride"
     if ride_mask.any():
         df.loc[ride_mask, "Activity Group"] = df.loc[ride_mask].apply(detect_cycling_subtype, axis=1)

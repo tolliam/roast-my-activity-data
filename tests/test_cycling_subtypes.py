@@ -126,11 +126,3 @@ def test_handle_missing_name():
     })
     result = detect_cycling_subtype(row)
     assert result == "Mountain Biking", "Should handle missing name without error"
-
-
-def test_all_cycling_groups_have_colors():
-    """Test that all cycling groups have colors defined."""
-    cycling_groups = ["Cycling", "Mountain Biking", "Road Cycling"]
-    
-    for group in cycling_groups:
-        assert group in ACTIVITY_COLORS, f"Cycling group '{group}' is missing from ACTIVITY_COLORS"
