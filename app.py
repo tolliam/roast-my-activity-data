@@ -137,10 +137,10 @@ def create_sidebar_filters(df):
     # Preset mappings
     presets = {
         "runner": ["Running", "Walking"],
-        "cyclist": ["Cycling"],
+        "cyclist": ["Cycling", "Mountain Biking", "Road Cycling"],
         "swimmer": ["Swimming"],
         "gym": ["Strength"],
-        "triathlete": ["Running", "Cycling", "Swimming"],
+        "triathlete": ["Running", "Cycling", "Mountain Biking", "Road Cycling", "Swimming"],
         "snowflake": ["Winter Sports"],
         "teamplayer": ["Team Sports"],
         "jackofall": None  # None means all activities

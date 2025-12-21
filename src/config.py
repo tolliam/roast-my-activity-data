@@ -27,6 +27,8 @@ WEEKS_PER_YEAR = 52
 ACTIVITY_COLORS: Dict[str, str] = {
     "Running": "#12436D",    # Dark blue
     "Cycling": "#28A197",    # Turquoise
+    "Mountain Biking": "#2E7D32",  # Forest green
+    "Road Cycling": "#1E88E5",     # Bright blue
     "Swimming": "#4C2C92",   # Bright purple (navy)
     "Walking": "#F46A25",    # Orange
     "Strength": "#A285D1",   # Light purple
@@ -39,7 +41,7 @@ ACTIVITY_COLORS: Dict[str, str] = {
 ACTIVITY_GROUP_MAP: Dict[str, str] = {
     "Run": "Running",
     "Virtual Run": "Running",
-    "Ride": "Cycling",
+    "Ride": "Cycling",  # Default for generic rides, will be refined by detect_cycling_subtype
     "Walk": "Walking",
     "Hike": "Walking",
     "Weight Training": "Strength",
@@ -59,6 +61,17 @@ ACTIVITY_GROUP_MAP: Dict[str, str] = {
     "Water Sport": "Other",
     "Unknown": "Other"
 }
+
+# Keywords to detect cycling subtypes from activity descriptions and names
+MTB_KEYWORDS = [
+    "mtb", "mountain bike", "mountain biking", "mountainbike",
+    "trail", "singletrack", "downhill", "enduro", "cross-country"
+]
+
+ROAD_CYCLING_KEYWORDS = [
+    "road bike", "road cycling", "road ride", "century",
+    "gran fondo", "sportive", "time trial", "tt bike"
+]
 
 # Custom CSS Styling with Dark Mode Support
 CUSTOM_CSS = """

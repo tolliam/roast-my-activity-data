@@ -8,7 +8,41 @@ import pandas as pd
 from typing import Optional
 import streamlit as st
 
-from src.config import ACTIVITY_GROUP_MAP, DATA_FILE_PATH
+from src.config import ACTIVITY_GROUP_MAP, DATA_FILE_PATH, MTB_KEYWORDS, ROAD_CYCLING_KEYWORDS
+
+
+def detect_cycling_subtype(row: pd.Series) -> str:
+    """Detect cycling subtype (Mountain Biking, Road Cycling, or generic Cycling).
+    
+    Analyzes activity name and description for keywords to determine
+    if a ride is mountain biking, road cycling, or generic cycling.
+    
+    Args:
+        row: DataFrame row containing 'Activity Name' and 'Activity Description'
+        
+    Returns:
+        String indicating the cycling subtype: 'Mountain Biking', 'Road Cycling', or 'Cycling'
+        
+    Examples:
+        >>> row = pd.Series({'Activity Name': 'MTB trail ride', 'Activity Description': 'Fun ride'})
+        >>> detect_cycling_subtype(row)
+        'Mountain Biking'
+    """
+    # Combine name and description for keyword search
+    text = f"{str(row.get('Activity Name', ''))} {str(row.get('Activity Description', ''))}".lower()
+    
+    # Check for MTB keywords first (more specific)
+    for keyword in MTB_KEYWORDS:
+        if keyword in text:
+            return "Mountain Biking"
+    
+    # Check for road cycling keywords
+    for keyword in ROAD_CYCLING_KEYWORDS:
+        if keyword in text:
+            return "Road Cycling"
+    
+    # Default to generic cycling
+    return "Cycling"
 
 
 @st.cache_data
@@ -62,6 +96,12 @@ def load_strava_data(file_path=None) -> pd.DataFrame:
     # Handle activity types first (needed for swim and rowing distance conversion)
     df["Activity Type"] = df["Activity Type"].fillna("Unknown")
     df["Activity Group"] = df["Activity Type"].map(ACTIVITY_GROUP_MAP)
+    
+    # Detect cycling subtypes for rides
+    # Apply detect_cycling_subtype to all rows where Activity Type is 'Ride'
+    ride_mask = df["Activity Type"] == "Ride"
+    if ride_mask.any():
+        df.loc[ride_mask, "Activity Group"] = df.loc[ride_mask].apply(detect_cycling_subtype, axis=1)
     
     # Create derived columns
     # Swimming and Rowing distances in Strava CSV are in meters, convert to km
