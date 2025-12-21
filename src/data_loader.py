@@ -61,7 +61,8 @@ def load_strava_data(file_path=None) -> pd.DataFrame:
     
     # Handle activity types first (needed for swim and rowing distance conversion)
     df["Activity Type"] = df["Activity Type"].fillna("Unknown")
-    df["Activity Group"] = df["Activity Type"].map(ACTIVITY_GROUP_MAP)
+    # Map activity types to groups, defaulting to "Other" for unmapped types
+    df["Activity Group"] = df["Activity Type"].map(ACTIVITY_GROUP_MAP).fillna("Other")
     
     # Create derived columns
     # Swimming and Rowing distances in Strava CSV are in meters, convert to km
