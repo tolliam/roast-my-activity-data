@@ -712,11 +712,19 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
             "Duration (min)", "Elevation (m)", "Average Speed (km/h)"
         ]].copy()
         
-        # Format numeric columns
-        display_races["Distance (km)"] = display_races["Distance (km)"].apply(lambda x: f"{x:,.1f}")
-        display_races["Duration (min)"] = display_races["Duration (min)"].apply(lambda x: f"{x:,.0f}")
-        display_races["Elevation (m)"] = display_races["Elevation (m)"].apply(lambda x: f"{x:,.0f}")
-        display_races["Average Speed (km/h)"] = display_races["Average Speed (km/h)"].apply(lambda x: f"{x:,.1f}")
+        # Format numeric columns with NaN handling
+        display_races["Distance (km)"] = display_races["Distance (km)"].apply(
+            lambda x: f"{x:,.1f}" if pd.notna(x) else "N/A"
+        )
+        display_races["Duration (min)"] = display_races["Duration (min)"].apply(
+            lambda x: f"{x:,.0f}" if pd.notna(x) else "N/A"
+        )
+        display_races["Elevation (m)"] = display_races["Elevation (m)"].apply(
+            lambda x: f"{x:,.0f}" if pd.notna(x) else "N/A"
+        )
+        display_races["Average Speed (km/h)"] = display_races["Average Speed (km/h)"].apply(
+            lambda x: f"{x:,.1f}" if pd.notna(x) else "N/A"
+        )
         
         st.dataframe(
             display_races,

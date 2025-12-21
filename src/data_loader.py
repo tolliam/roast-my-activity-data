@@ -316,7 +316,7 @@ def filter_races(df: pd.DataFrame) -> pd.DataFrame:
         >>> races_df = filter_races(df)
     """
     if "Competition" in df.columns:
-        return df[df["Competition"] == True]
+        return df[df["Competition"]]
     else:
         # If Competition column doesn't exist, return empty dataframe
         return df[df.index < 0]
@@ -335,7 +335,7 @@ def filter_training(df: pd.DataFrame) -> pd.DataFrame:
         >>> training_df = filter_training(df)
     """
     if "Competition" in df.columns:
-        return df[df["Competition"] == False]
+        return df[~df["Competition"]]
     else:
         # If Competition column doesn't exist, return all activities as training
         return df
