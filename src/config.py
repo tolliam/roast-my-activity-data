@@ -31,6 +31,7 @@ ACTIVITY_COLORS: Dict[str, str] = {
     "Walking": "#F46A25",    # Orange
     "Strength": "#A285D1",   # Light purple
     "Winter Sports": "#7DD3FC",  # Sky blue - covers Alpine Ski, Backcountry Ski, Nordic Ski, Snowboard
+    "Team Sports": "#D4351C",  # Red - covers Rugby, Football, Netball, Basketball, Soccer
     "Other": "#801650"       # Dark pink
 }
 
@@ -50,6 +51,11 @@ ACTIVITY_GROUP_MAP: Dict[str, str] = {
     "Backcountry Ski": "Winter Sports",
     "Nordic Ski": "Winter Sports",
     "Snowboard": "Winter Sports",
+    "Rugby": "Team Sports",
+    "Football": "Team Sports",
+    "Netball": "Team Sports",
+    "Basketball": "Team Sports",
+    "Soccer": "Team Sports",
     "Water Sport": "Other",
     "Unknown": "Other"
 }
