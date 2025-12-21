@@ -469,6 +469,112 @@ def render_fun_tab(df, theme=None):
     render_cheeky_metrics(cheeky_metrics)
 
 
+def render_help_tab():
+    """Render the Help/Instructions tab content."""
+    from src.config import ACTIVITY_GROUP_MAP
+    
+    st.header("❓ Help & Instructions")
+    
+    # Introduction
+    st.markdown("""
+    Welcome to the Roast My Activity Data dashboard! This page explains how your activities 
+    are categorized and provides helpful information about using the app.
+    """)
+    
+    st.markdown("---")
+    
+    # Activity Type Mapping Section
+    st.subheader("🏃 Activity Type Mapping")
+    
+    st.markdown("""
+    Your activity data from Strava contains specific activity types (like "Run", "Ride", "Swim", etc.). 
+    This app groups these into broader categories for easier analysis and visualization.
+    
+    Below is the complete mapping showing how each Strava activity type is categorized:
+    """)
+    
+    # Create a structured display of the mapping
+    # Group by Activity Group for better organization
+    grouped_mapping = {}
+    for activity_type, group in ACTIVITY_GROUP_MAP.items():
+        if group not in grouped_mapping:
+            grouped_mapping[group] = []
+        grouped_mapping[group].append(activity_type)
+    
+    # Display each group with its mappings
+    for group in sorted(grouped_mapping.keys()):
+        with st.expander(f"**{group}**", expanded=True):
+            activities = sorted(grouped_mapping[group])
+            st.markdown("**Includes:**")
+            for activity in activities:
+                st.markdown(f"- {activity}")
+    
+    st.markdown("---")
+    
+    # Quick Tips Section
+    st.subheader("💡 Quick Tips")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+        **Filtering Activities**
+        - Use the sidebar to select which activity groups to include
+        - Uncheck groups you want to exclude from your analysis
+        - Changes apply to all tabs instantly
+        
+        **Time Ranges**
+        - The "Recent Activity" tab uses the date slider
+        - The "All-Time Analysis" tab shows your complete history
+        - Adjust the slider to focus on specific periods
+        """)
+    
+    with col2:
+        st.markdown("""
+        **Understanding Charts**
+        - Hover over chart elements for detailed information
+        - Click legend items to show/hide specific categories
+        - Most charts are interactive and zoomable
+        
+        **Data Privacy**
+        - All data stays in your browser session
+        - Nothing is stored on servers
+        - Your activities remain completely private
+        """)
+    
+    st.markdown("---")
+    
+    # Getting Started Section
+    st.subheader("🚀 Getting Started")
+    
+    st.markdown("""
+    **How to use this app:**
+    
+    1. **Upload Your Data**: Use the file uploader to load your Strava `activities.csv` file
+    2. **Explore Tabs**: Navigate between Recent Activity, All-Time Analysis, and Just for Fun
+    3. **Filter & Analyze**: Use sidebar controls to customize your view
+    4. **Discover Insights**: Check out your personal records, trends, and fun metrics!
+    
+    **Need your Strava data?**
+    1. Go to [Strava.com](https://www.strava.com/) → Settings → My Account
+    2. Click "Download or Delete Your Account"
+    3. Request your data export
+    4. Wait for email (usually arrives within a few hours)
+    5. Extract the ZIP file and upload `activities.csv` to this app
+    """)
+    
+    st.markdown("---")
+    
+    # Additional Resources
+    st.subheader("📚 Additional Resources")
+    
+    st.markdown("""
+    - **Full Documentation**: Check out the [USAGE.md](https://github.com/tolliam/roast-my-activity-data/blob/main/docs/USAGE.md) guide for detailed instructions
+    - **Report Issues**: Found a bug? [Open an issue on GitHub](https://github.com/tolliam/roast-my-activity-data/issues)
+    - **Contribute**: Want to help improve the app? See our [Contributing Guide](https://github.com/tolliam/roast-my-activity-data/blob/main/CONTRIBUTING.md)
+    """)
+
+
 def render_alltime_tab(df, time_interval="quarterly", theme=None):
     """Render the All-Time Analysis tab content.
     
@@ -662,7 +768,7 @@ def main():
     df_filtered = filter_by_date_range(df, days_back)
     
     # Create tabs
-    tab_recent, tab_alltime, tab_fun = st.tabs(["📊 Recent Activity", "🏆 All-Time Analysis", "🎉 Just for Fun"])
+    tab_recent, tab_alltime, tab_fun, tab_help = st.tabs(["📊 Recent Activity", "🏆 All-Time Analysis", "🎉 Just for Fun", "❓ Help"])
     
     with tab_recent:
         render_recent_activity_tab(df_filtered, days_back, theme)
@@ -672,6 +778,9 @@ def main():
     
     with tab_fun:
         render_fun_tab(df, theme)
+    
+    with tab_help:
+        render_help_tab()
     
     # Footer bar with version
     st.markdown("---")

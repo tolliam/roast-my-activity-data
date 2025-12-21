@@ -34,6 +34,21 @@ Complete guide to using the Roast My Activity Data analytics dashboard.
 
 ## Interface Overview
 
+### Understanding Activity Types
+
+The app categorizes your Strava activities into broader groups for easier analysis:
+
+- **Running**: Run, Virtual Run
+- **Cycling**: Ride
+- **Swimming**: Swim, Open Water Swim
+- **Walking**: Walk, Hike
+- **Strength**: Weight Training, Workout, Rowing
+- **Winter Sports**: Alpine Ski, Backcountry Ski, Nordic Ski, Snowboard
+- **Team Sports**: Rugby, Football, Netball, Basketball, Soccer
+- **Other**: Water Sport, Unknown, and any other activity types
+
+These groupings allow you to filter and analyze your activities by broader categories rather than individual activity types. You can find the complete mapping in the **Help tab** within the app.
+
 ### Sidebar Controls
 
 **Show activities from last N days**
@@ -58,6 +73,16 @@ Complete guide to using the Roast My Activity Data analytics dashboard.
 - Complete activity history
 - Long-term trends and patterns
 - Personal records and achievements
+
+**🎉 Just for Fun**
+- Fun metrics and comparisons
+- Exercise obsession meter
+- Creative ways to visualize your data
+
+**❓ Help**
+- Activity type mapping reference
+- Quick tips and getting started guide
+- Links to documentation and support
 
 ## Features Deep Dive
 
