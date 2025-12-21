@@ -157,6 +157,8 @@ def test_calculate_exercise_obsession_score_high_volume():
     score, level, description = calculate_exercise_obsession_score(df)
     
     # With daily activities for 90 days, score should be high
+    # Expected minimum of 60 based on: high frequency (25 pts), high volume (25 pts),
+    # perfect consistency (20 pts), and some dedication/variety points
     assert score >= 60, f"Expected high score for daily exerciser, got {score}"
 
 

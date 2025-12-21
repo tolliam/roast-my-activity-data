@@ -75,7 +75,7 @@ def test_activity_colors_dict():
         assert color.startswith('#'), f"Color '{color}' for '{activity}' should start with '#'"
         assert len(color) == 7, f"Color '{color}' for '{activity}' should be 7 characters (#RRGGBB)"
     
-    # Test for expected activity types
+    # Test for expected core activity types (note: if new activities are added to config, update this list)
     expected_activities = ["Running", "Cycling", "Swimming", "Walking", "Strength", "Other"]
     for activity in expected_activities:
         assert activity in ACTIVITY_COLORS, f"Expected activity '{activity}' not found in ACTIVITY_COLORS"
