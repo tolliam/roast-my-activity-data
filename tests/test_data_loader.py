@@ -9,12 +9,13 @@ from src.data_loader import load_strava_data, filter_by_activities, filter_by_da
 
 def test_swimming_and_rowing_distance_conversion():
     """Test that swimming and rowing distances are correctly converted from meters to km."""
-    # Create sample CSV data with distances in meters for Swim and Rowing
-    csv_data = """Activity ID,Activity Date,Activity Name,Activity Type,Activity Description,Elapsed Time,Distance,Max Heart Rate,Relative Effort,Commute,Activity Private Note,Activity Gear,Filename,Athlete Weight,Bike Weight,Elapsed Time,Moving Time,Distance,Max Speed,Average Speed,Elevation Gain,Elevation Loss,Elevation Low,Elevation High
-1,"Jan 1, 2024, 10:00:00 AM",Morning Swim,Swim,,1800,1000,,,false,,,,,,,1800,1000,,,10,,,
-2,"Jan 2, 2024, 10:00:00 AM",Morning Row,Rowing,,600,2000,,,false,,,,,,,600,2000,,,5,,,
-3,"Jan 3, 2024, 10:00:00 AM",Morning Ride,Ride,,3600,25.5,,,false,,,,,,,3600,25.5,,,100,,,
-4,"Jan 4, 2024, 10:00:00 AM",Morning Run,Run,,1800,5.0,,,false,,,,,,,1800,5.0,,,50,,,"""
+    # Create minimal CSV data with only the columns needed for testing
+    # Swimming and Rowing distances are in meters in the CSV, other activities are in km
+    csv_data = """Activity Date,Activity Type,Elapsed Time,Distance,Average Speed,Elevation Gain
+"Jan 1, 2024, 10:00:00 AM",Swim,1800,1000,2.0,10
+"Jan 2, 2024, 10:00:00 AM",Rowing,600,2000,12.0,5
+"Jan 3, 2024, 10:00:00 AM",Ride,3600,25.5,25.5,100
+"Jan 4, 2024, 10:00:00 AM",Run,1800,5.0,10.0,50"""
     
     # Create a StringIO object to simulate a file
     csv_file = StringIO(csv_data)
