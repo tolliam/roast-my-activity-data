@@ -63,6 +63,20 @@ def load_strava_data(file_path=None) -> pd.DataFrame:
     df["Activity Type"] = df["Activity Type"].fillna("Unknown")
     df["Activity Group"] = df["Activity Type"].map(ACTIVITY_GROUP_MAP)
     
+    # Handle Competition field - convert to boolean
+    if "Competition" in df.columns:
+        # Handle various representations of True/False
+        df["Competition"] = df["Competition"].replace('', False)
+        df["Competition"] = df["Competition"].fillna(False).infer_objects(copy=False)
+        # Map string representations to boolean
+        df["Competition"] = df["Competition"].replace({
+            'True': True, 'true': True, '1': True, 1: True,
+            'False': False, 'false': False, '0': False, 0: False
+        }).infer_objects(copy=False)
+        df["Competition"] = df["Competition"].astype(bool)
+    else:
+        df["Competition"] = False
+    
     # Create derived columns
     # Swimming and Rowing distances in Strava CSV are in meters, convert to km
     df["Distance (km)"] = df["Distance"].copy()
@@ -287,3 +301,41 @@ def get_stacked_activity_data(df: pd.DataFrame, interval: str = "quarterly") -> 
         
         activity_by_period = df_timeline.groupby(["Period", "Activity Group"]).size().reset_index(name="Count")
         return activity_by_period.sort_values("Period")
+
+
+def filter_races(df: pd.DataFrame) -> pd.DataFrame:
+    """Filter DataFrame to include only race activities.
+    
+    Args:
+        df: DataFrame containing activity data with 'Competition' column.
+        
+    Returns:
+        Filtered DataFrame containing only activities marked as races (Competition=True).
+        
+    Examples:
+        >>> races_df = filter_races(df)
+    """
+    if "Competition" in df.columns:
+        return df[df["Competition"] == True]
+    else:
+        # If Competition column doesn't exist, return empty dataframe
+        return df[df.index < 0]
+
+
+def filter_training(df: pd.DataFrame) -> pd.DataFrame:
+    """Filter DataFrame to include only training activities (non-races).
+    
+    Args:
+        df: DataFrame containing activity data with 'Competition' column.
+        
+    Returns:
+        Filtered DataFrame containing only activities not marked as races (Competition=False).
+        
+    Examples:
+        >>> training_df = filter_training(df)
+    """
+    if "Competition" in df.columns:
+        return df[df["Competition"] == False]
+    else:
+        # If Competition column doesn't exist, return all activities as training
+        return df

@@ -17,7 +17,8 @@ from src.config import (
 from src.data_loader import (
     load_strava_data, filter_by_activities, 
     filter_by_date_range, get_quarterly_stats, get_monthly_trends,
-    get_aggregated_trends, get_stacked_activity_data
+    get_aggregated_trends, get_stacked_activity_data,
+    filter_races, filter_training
 )
 from src.utils import (
     calculate_fun_metrics, calculate_cheeky_metrics, get_personal_records, 
@@ -249,9 +250,36 @@ def render_recent_activity_tab(df_filtered, days_back, theme):
     """
     st.subheader(f"Last {days_back} Days")
     
-    # Summary metrics
+    # Summary metrics including races
     stats = calculate_summary_stats(df_filtered)
-    render_summary_metrics(stats)
+    races_df = filter_races(df_filtered)
+    num_races = len(races_df)
+    
+    # Render metrics with races count
+    col_config = [
+        ("Total Activities", "total_activities", ","),
+        ("Races", None, ","),  # Special handling
+        ("Total Distance", "total_distance", ",.1f"),
+        ("Total Duration", "total_duration", ",.1f"),
+        ("Total Elevation", "total_elevation", ",")
+    ]
+    
+    cols = st.columns(len(col_config))
+    for col, (label, key, fmt) in zip(cols, col_config):
+        with col:
+            if label == "Races":
+                st.metric(label, f"{num_races:,}")
+            elif key in stats:
+                value = stats[key]
+                if fmt == ",":
+                    st.metric(label, f"{int(value):,}")
+                elif fmt == ",.1f":
+                    if "Duration" in label:
+                        st.metric(label, f"{value:.1f} hrs")
+                    else:
+                        st.metric(label, f"{value:.1f} km")
+                else:
+                    st.metric(label, f"{int(value):,} m")
     
     # Charts
     col1, col2 = st.columns(2)
@@ -590,11 +618,13 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
     stats = calculate_summary_stats(df)
     render_summary_metrics(stats)
     
-    # Epic achievement metrics
+    # Epic achievement metrics including races
     st.markdown("")
     fun_metrics = calculate_fun_metrics(df)
+    races_df = filter_races(df)
+    num_races = len(races_df)
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.metric(
@@ -604,14 +634,21 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
         )
     
     with col2:
+        st.metric(
+            "🏁 Races",
+            f"{num_races:,}",
+            help="Total number of race/competition activities"
+        )
+    
+    with col3:
         display, help_text = format_metric_display(fun_metrics['times_around_world'], 'earth')
         st.metric("🌍 Around Earth", display, help=help_text)
     
-    with col3:
+    with col4:
         display, help_text = format_metric_display(fun_metrics['days_active'], 'time')
         st.metric("⏱️ Time Active", display, help=help_text)
     
-    with col4:
+    with col5:
         display, help_text = format_metric_display(fun_metrics['times_up_everest'], 'everest')
         st.metric("🏔️ Up Mt Everest", display, help=help_text)
     
@@ -664,6 +701,28 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
     with pr_cols[3]:
         speed = prs['fastest_speed']
         st.metric("Fastest Speed", f"{int(speed) if not pd.isna(speed) else 0} km/h")
+    
+    # Races table
+    if num_races > 0:
+        st.header("🏁 Race Activities")
+        
+        # Create formatted dataframe for display
+        display_races = races_df.sort_values("Activity Date", ascending=False)[[
+            "Activity Date", "Activity Name", "Activity Type", "Distance (km)", 
+            "Duration (min)", "Elevation (m)", "Average Speed (km/h)"
+        ]].copy()
+        
+        # Format numeric columns
+        display_races["Distance (km)"] = display_races["Distance (km)"].apply(lambda x: f"{x:,.1f}")
+        display_races["Duration (min)"] = display_races["Duration (min)"].apply(lambda x: f"{x:,.0f}")
+        display_races["Elevation (m)"] = display_races["Elevation (m)"].apply(lambda x: f"{x:,.0f}")
+        display_races["Average Speed (km/h)"] = display_races["Average Speed (km/h)"].apply(lambda x: f"{x:,.1f}")
+        
+        st.dataframe(
+            display_races,
+            width='stretch',
+            hide_index=True
+        )
     
     # Calendar heatmap
     st.header("📅 Activity Calendar")
