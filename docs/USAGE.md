@@ -42,13 +42,25 @@ Complete guide to using the Roast My Activity Data analytics dashboard.
 The app categorizes your Strava activities into broader groups for easier analysis:
 
 - **Running**: Run, Virtual Run
-- **Cycling**: Ride
+- **Cycling**: Ride (generic cycling activities)
+- **Mountain Biking**: Ride activities with mountain biking keywords (MTB, mountain bike, trail, singletrack, etc.)
+- **Road Cycling**: Ride activities with road cycling keywords (road bike, road cycling, century, gran fondo, etc.)
 - **Swimming**: Swim, Open Water Swim
 - **Walking**: Walk, Hike
 - **Strength**: Weight Training, Workout, Rowing
 - **Winter Sports**: Alpine Ski, Backcountry Ski, Nordic Ski, Snowboard
 - **Team Sports**: Rugby, Football, Netball, Basketball, Soccer
 - **Other**: Water Sport, Unknown, and any other activity types
+
+#### Cycling Subtype Detection
+
+The app automatically detects different cycling types based on your activity names and descriptions:
+
+- **Mountain Biking**: Activities containing keywords like "MTB", "mountain bike", "trail", "singletrack", "downhill", "enduro", or "cross-country"
+- **Road Cycling**: Activities containing keywords like "road bike", "road cycling", "century", "gran fondo", "sportive", or "time trial"
+- **Cycling**: All other rides that don't match the above patterns
+
+This allows you to track and compare your different cycling disciplines separately while keeping them grouped for overall cycling analysis.
 
 These groupings allow you to filter and analyze your activities by broader categories rather than individual activity types. You can find the complete mapping in the **Help tab** within the app.
 

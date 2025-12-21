@@ -489,6 +489,12 @@ def render_help_tab():
     Your activity data from Strava contains specific activity types (like "Run", "Ride", "Swim", etc.). 
     This app groups these into broader categories for easier analysis and visualization.
     
+    **Special Note on Cycling:**
+    The app automatically detects different cycling disciplines from your activity names and descriptions:
+    - **Mountain Biking**: Activities with keywords like "MTB", "mountain bike", "trail", "singletrack"
+    - **Road Cycling**: Activities with keywords like "road bike", "road cycling", "century", "gran fondo"
+    - **Cycling**: All other rides
+    
     Below is the complete mapping showing how each Strava activity type is categorized:
     """)
     

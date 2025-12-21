@@ -16,7 +16,8 @@ A comprehensive, professional-grade activity analytics dashboard built with Stre
 
 ### 📊 Recent Activity Analysis
 - **Customizable Time Ranges**: Filter activities from 1-90 days
-- **Activity Type Filtering**: Focus on specific activity types (Running, Cycling, Swimming, etc.)
+- **Activity Type Filtering**: Focus on specific activity types (Running, Cycling, Mountain Biking, Road Cycling, Swimming, etc.)
+- **Smart Cycling Detection**: Automatically distinguishes between Mountain Biking and Road Cycling based on activity descriptions
 - **Interactive Charts**: Distance timelines, activity distribution pie charts, duration histograms
 - **Detailed Activity Table**: Sortable table with all recent activities
 
