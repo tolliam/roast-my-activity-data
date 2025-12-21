@@ -11,7 +11,8 @@ from datetime import datetime
 from src.config import (
     APP_TITLE, CUSTOM_CSS, DEFAULT_DAYS_BACK, 
     MIN_DAYS_BACK, MAX_DAYS_BACK, DATA_FILE_PATH,
-    PLOTLY_LIGHT_THEME, PLOTLY_DARK_THEME, VERSION
+    PLOTLY_LIGHT_THEME, PLOTLY_DARK_THEME, VERSION,
+    ACTIVITY_GROUP_MAP
 )
 from src.data_loader import (
     load_strava_data, filter_by_activities, 
@@ -471,8 +472,6 @@ def render_fun_tab(df, theme=None):
 
 def render_help_tab():
     """Render the Help/Instructions tab content."""
-    from src.config import ACTIVITY_GROUP_MAP
-    
     st.header("❓ Help & Instructions")
     
     # Introduction
@@ -501,9 +500,10 @@ def render_help_tab():
             grouped_mapping[group] = []
         grouped_mapping[group].append(activity_type)
     
-    # Display each group with its mappings
-    for group in sorted(grouped_mapping.keys()):
-        with st.expander(f"**{group}**", expanded=True):
+    # Display each group with its mappings - first 3 expanded, rest collapsed for better UX
+    sorted_groups = sorted(grouped_mapping.keys())
+    for idx, group in enumerate(sorted_groups):
+        with st.expander(f"**{group}**", expanded=(idx < 3)):
             activities = sorted(grouped_mapping[group])
             st.markdown("**Includes:**")
             for activity in activities:
