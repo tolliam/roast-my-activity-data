@@ -120,7 +120,8 @@ def create_sidebar_filters(df):
         "🚴 Cyclist": "cyclist",
         "🏊 Swimmer": "swimmer",
         "🏋️ Gym Rat": "gym",
-        "🏅 Triathlete": "triathlete"
+        "🏅 Triathlete": "triathlete",
+        "❄️ Snowflake": "snowflake"
     }
     
     selected_mode = st.sidebar.selectbox(
@@ -138,6 +139,7 @@ def create_sidebar_filters(df):
         "swimmer": ["Swimming"],
         "gym": ["Strength"],
         "triathlete": ["Running", "Cycling", "Swimming"],
+        "snowflake": ["Skiing"],
         "jackofall": None  # None means all activities
     }
     
