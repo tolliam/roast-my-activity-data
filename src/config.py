@@ -31,7 +31,7 @@ ACTIVITY_COLORS: Dict[str, str] = {
     "Walking": "#F46A25",    # Orange
     "Strength": "#A285D1",   # Light purple
     "Skiing": "#5694CA",     # Light blue
-    "Snowflake": "#E0F2FE",  # Light blue (winter-themed)
+    "Snowflake": "#7DD3FC",  # Sky blue (winter-themed)
     "Other": "#801650"       # Dark pink
 }
 
