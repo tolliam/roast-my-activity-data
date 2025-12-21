@@ -56,7 +56,7 @@ The app categorizes your Strava activities into broader groups for easier analys
 
 The app automatically detects different cycling types based on your activity names and descriptions:
 
-- **Mountain Biking**: Activities containing keywords like "MTB", "mountain bike", "trail", "singletrack", "downhill", "enduro", or "cross-country"
+- **Mountain Biking**: Activities containing keywords like "MTB", "mountain bike", "bike trail", "mtb trail", "singletrack", "downhill", "enduro", or "cross-country"
 - **Road Cycling**: Activities containing keywords like "road bike", "road cycling", "century", "gran fondo", "sportive", or "time trial"
 - **Cycling**: All other rides that don't match the above patterns
 

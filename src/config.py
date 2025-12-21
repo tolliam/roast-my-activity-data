@@ -65,7 +65,7 @@ ACTIVITY_GROUP_MAP: Dict[str, str] = {
 # Keywords to detect cycling subtypes from activity descriptions and names
 MTB_KEYWORDS = [
     "mtb", "mountain bike", "mountain biking", "mountainbike",
-    "trail", "singletrack", "downhill", "enduro", "cross-country"
+    "bike trail", "mtb trail", "singletrack", "downhill", "enduro", "cross-country"
 ]
 
 ROAD_CYCLING_KEYWORDS = [

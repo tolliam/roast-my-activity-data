@@ -491,7 +491,7 @@ def render_help_tab():
     
     **Special Note on Cycling:**
     The app automatically detects different cycling disciplines from your activity names and descriptions:
-    - **Mountain Biking**: Activities with keywords like "MTB", "mountain bike", "trail", "singletrack"
+    - **Mountain Biking**: Activities with keywords like "MTB", "mountain bike", "bike trail", "mtb trail", "singletrack"
     - **Road Cycling**: Activities with keywords like "road bike", "road cycling", "century", "gran fondo"
     - **Cycling**: All other rides
     

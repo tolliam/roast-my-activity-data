@@ -28,8 +28,10 @@ def detect_cycling_subtype(row: pd.Series) -> str:
         >>> detect_cycling_subtype(row)
         'Mountain Biking'
     """
-    # Combine name and description for keyword search
-    text = f"{str(row.get('Activity Name', ''))} {str(row.get('Activity Description', ''))}".lower()
+    # Combine name and description for keyword search, handling None values efficiently
+    name = row.get('Activity Name') or ''
+    description = row.get('Activity Description') or ''
+    text = f"{name} {description}".lower()
     
     # Check for MTB keywords first (more specific)
     for keyword in MTB_KEYWORDS:
