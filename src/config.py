@@ -29,6 +29,7 @@ ACTIVITY_COLORS: Dict[str, str] = {
     "Cycling": "#28A197",    # Turquoise
     "Swimming": "#4C2C92",   # Bright purple (navy)
     "Walking": "#F46A25",    # Orange
+    "Hiking": "#D4A01C",     # Dark gold/amber - for hikes
     "Strength": "#A285D1",   # Light purple
     "Winter Sports": "#7DD3FC",  # Sky blue - covers Alpine Ski, Backcountry Ski, Nordic Ski, Snowboard
     "Team Sports": "#D4351C",  # Red - covers Rugby, Football, Netball, Basketball, Soccer
@@ -41,7 +42,7 @@ ACTIVITY_GROUP_MAP: Dict[str, str] = {
     "Virtual Run": "Running",
     "Ride": "Cycling",
     "Walk": "Walking",
-    "Hike": "Walking",
+    "Hike": "Hiking",
     "Weight Training": "Strength",
     "Workout": "Strength",
     "Rowing": "Strength",

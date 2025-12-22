@@ -9,7 +9,7 @@ ACTIVITY_GROUP_MAP = {
     "Virtual Run": "Running",
     "Ride": "Cycling",
     "Walk": "Walking",
-    "Hike": "Walking",
+    "Hike": "Hiking",
     "Weight Training": "Strength",
     "Workout": "Strength",
     "Rowing": "Strength",
