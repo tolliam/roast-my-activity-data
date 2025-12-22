@@ -1,29 +1,31 @@
 import pandas as pd
-from typing import Dict, Any
+from typing import Dict, Any, Union
+from datetime import datetime, timedelta
+import streamlit as st
 
-# Activity type to group mappings
+# Activity type to group mappings - Updated to match config.py
 ACTIVITY_GROUP_MAP = {
-    "Run": "Cardio",
-    "Ride": "Cardio",
-    "Walk": "Cardio",
-    "Hike": "Cardio",
-    "Swim": "Cardio",
-    "Rowing": "Cardio",
-    "EBikeRide": "Cardio",
-    "VirtualRide": "Cardio",
-    "VirtualRun": "Cardio",
-    "Elliptical": "Cardio",
-    "Crossfit": "Gym",
-    "Weight Training": "Gym",
-    "Workout": "Gym",
-    "Yoga": "Yoga",
-    "Rock Climbing": "Other",
-    "Ice Skate": "Other",
-    "Alpine Ski": "Other",
-    "Backcountry Ski": "Other",
-    "Nordic Ski": "Other",
-    "Snowboard": "Other",
-    "Snowshoe": "Other",
+    "Run": "Running",
+    "Virtual Run": "Running",
+    "Ride": "Cycling",
+    "Walk": "Walking",
+    "Hike": "Walking",
+    "Weight Training": "Strength",
+    "Workout": "Strength",
+    "Rowing": "Strength",
+    "Swim": "Swimming",
+    "Open Water Swim": "Swimming",
+    "Alpine Ski": "Winter Sports",
+    "Backcountry Ski": "Winter Sports",
+    "Nordic Ski": "Winter Sports",
+    "Snowboard": "Winter Sports",
+    "Rugby": "Team Sports",
+    "Football": "Team Sports",
+    "Netball": "Team Sports",
+    "Basketball": "Team Sports",
+    "Soccer": "Team Sports",
+    "Water Sport": "Other",
+    "Unknown": "Other"
 }
 
 def load_and_process_data(csv_path: str) -> pd.DataFrame:
@@ -91,8 +93,12 @@ def load_and_process_data(csv_path: str) -> pd.DataFrame:
     
     df["Duration (min)"] = df["Time"] / 60
     
+    # Add aliases for consistency with the rest of the app
+    df["Elevation (m)"] = df["Elevation Gain"]
+    df["Average Speed (km/h)"] = df["Average Speed"]
+    
     # Fill NaN values with 0 for numeric columns
-    numeric_cols = ["Distance (km)", "Duration (min)", "Elevation Gain", "Average Speed"]
+    numeric_cols = ["Distance (km)", "Duration (min)", "Elevation Gain", "Elevation (m)", "Average Speed", "Average Speed (km/h)"]
     df[numeric_cols] = df[numeric_cols].fillna(0)
     
     return df
@@ -119,3 +125,193 @@ def get_summary_stats(df: pd.DataFrame) -> Dict[str, Any]:
             "end": df["Activity Date"].max()
         }
     }
+
+
+@st.cache_data
+def load_strava_data(data_source: Union[str, Any]) -> pd.DataFrame:
+    """
+    Load and process Strava activity data with caching.
+    
+    Args:
+        data_source: Either a file path (str) or an uploaded file object
+        
+    Returns:
+        Processed DataFrame with cleaned and derived columns
+    """
+    return load_and_process_data(data_source)
+
+
+def filter_by_activities(df: pd.DataFrame, selected_activities: list) -> pd.DataFrame:
+    """
+    Filter DataFrame by selected activity types.
+    
+    Args:
+        df: Activity DataFrame
+        selected_activities: List of activity groups to include (e.g., ["Running", "Cycling"])
+        
+    Returns:
+        Filtered DataFrame
+    """
+    if selected_activities is None or len(selected_activities) == 0:
+        return df
+    
+    return df[df["Activity Group"].isin(selected_activities)].copy()
+
+
+def filter_by_date_range(df: pd.DataFrame, days_back: int) -> pd.DataFrame:
+    """
+    Filter DataFrame to include only activities within the specified number of days.
+    
+    Args:
+        df: Activity DataFrame
+        days_back: Number of days to look back from today
+        
+    Returns:
+        Filtered DataFrame
+    """
+    cutoff_date = datetime.now() - timedelta(days=days_back)
+    return df[df["Activity Date"] >= cutoff_date].copy()
+
+
+def get_quarterly_stats(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Aggregate activity data by quarter.
+    
+    Args:
+        df: Activity DataFrame
+        
+    Returns:
+        DataFrame with quarterly aggregated statistics
+    """
+    if len(df) == 0:
+        return pd.DataFrame()
+    
+    df_copy = df.copy()
+    df_copy["Quarter"] = df_copy["Activity Date"].dt.to_period("Q").astype(str)
+    
+    quarterly = df_copy.groupby("Quarter").agg({
+        "Distance (km)": "sum",
+        "Duration (min)": "sum",
+        "Elevation Gain": "sum",
+        "Activity Type": "count"
+    }).reset_index()
+    
+    quarterly.columns = ["Quarter", "Distance", "Duration", "Elevation", "Activity Count"]
+    quarterly["Duration (hours)"] = (quarterly["Duration"] / 60).round(1)
+    
+    return quarterly.sort_values("Quarter")
+
+
+def get_monthly_trends(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Aggregate activity data by month.
+    
+    Args:
+        df: Activity DataFrame
+        
+    Returns:
+        DataFrame with monthly aggregated statistics
+    """
+    if len(df) == 0:
+        return pd.DataFrame()
+    
+    df_copy = df.copy()
+    df_copy["Month"] = df_copy["Activity Date"].dt.to_period("M").astype(str)
+    
+    monthly = df_copy.groupby("Month").agg({
+        "Distance (km)": "sum",
+        "Duration (min)": "sum",
+        "Elevation Gain": "sum",
+        "Activity Type": "count"
+    }).reset_index()
+    
+    monthly.columns = ["Month", "Distance", "Duration", "Elevation", "Activity Count"]
+    monthly["Duration (hours)"] = (monthly["Duration"] / 60).round(1)
+    
+    return monthly.sort_values("Month")
+
+
+def get_aggregated_trends(df: pd.DataFrame, time_interval: str = "quarter") -> pd.DataFrame:
+    """
+    Aggregate activity data by the specified time interval.
+    
+    Args:
+        df: Activity DataFrame
+        time_interval: Time interval for aggregation ("month", "quarter", "year", "alltime")
+        
+    Returns:
+        DataFrame with aggregated statistics
+    """
+    if len(df) == 0:
+        return pd.DataFrame()
+    
+    df_copy = df.copy()
+    
+    if time_interval == "month":
+        df_copy["Period"] = df_copy["Activity Date"].dt.to_period("M").astype(str)
+    elif time_interval == "quarter":
+        df_copy["Period"] = df_copy["Activity Date"].dt.to_period("Q").astype(str)
+    elif time_interval == "year":
+        df_copy["Period"] = df_copy["Activity Date"].dt.to_period("Y").astype(str)
+    elif time_interval == "alltime":
+        # For alltime, aggregate everything into a single period
+        df_copy["Period"] = "All Time"
+    else:
+        # Default to quarter
+        df_copy["Period"] = df_copy["Activity Date"].dt.to_period("Q").astype(str)
+    
+    aggregated = df_copy.groupby("Period").agg({
+        "Distance (km)": "sum",
+        "Duration (min)": "sum",
+        "Elevation Gain": "sum",
+        "Activity Type": "count"
+    }).reset_index()
+    
+    aggregated.columns = ["Period", "Distance", "Duration", "Elevation", "Activity Count"]
+    aggregated["Duration (hours)"] = (aggregated["Duration"] / 60).round(1)
+    
+    # Calculate cumulative distance
+    aggregated = aggregated.sort_values("Period")
+    aggregated["Cumulative Distance"] = aggregated["Distance"].cumsum()
+    
+    return aggregated
+
+
+def get_stacked_activity_data(df: pd.DataFrame, time_interval: str = "quarter") -> pd.DataFrame:
+    """
+    Prepare activity data for stacked charts by activity group and time period.
+    
+    Args:
+        df: Activity DataFrame
+        time_interval: Time interval for aggregation ("month", "quarter", "year", "alltime")
+        
+    Returns:
+        DataFrame with activity counts by group and period
+    """
+    if len(df) == 0:
+        return pd.DataFrame()
+    
+    df_copy = df.copy()
+    
+    if time_interval == "month":
+        df_copy["Period"] = df_copy["Activity Date"].dt.to_period("M").astype(str)
+    elif time_interval == "quarter":
+        df_copy["Period"] = df_copy["Activity Date"].dt.to_period("Q").astype(str)
+    elif time_interval == "year":
+        df_copy["Period"] = df_copy["Activity Date"].dt.to_period("Y").astype(str)
+    elif time_interval == "alltime":
+        # For alltime, aggregate everything into a single period
+        df_copy["Period"] = "All Time"
+    else:
+        # Default to quarter
+        df_copy["Period"] = df_copy["Activity Date"].dt.to_period("Q").astype(str)
+    
+    # Group by period and activity group
+    stacked = df_copy.groupby(["Period", "Activity Group"]).agg({
+        "Activity Type": "count",
+        "Distance (km)": "sum"
+    }).reset_index()
+    
+    stacked.columns = ["Period", "Activity Group", "Count", "Distance"]
+    
+    return stacked.sort_values("Period")
