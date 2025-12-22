@@ -93,8 +93,12 @@ def load_and_process_data(csv_path: str) -> pd.DataFrame:
     
     df["Duration (min)"] = df["Time"] / 60
     
+    # Add aliases for consistency with the rest of the app
+    df["Elevation (m)"] = df["Elevation Gain"]
+    df["Average Speed (km/h)"] = df["Average Speed"]
+    
     # Fill NaN values with 0 for numeric columns
-    numeric_cols = ["Distance (km)", "Duration (min)", "Elevation Gain", "Average Speed"]
+    numeric_cols = ["Distance (km)", "Duration (min)", "Elevation Gain", "Elevation (m)", "Average Speed", "Average Speed (km/h)"]
     df[numeric_cols] = df[numeric_cols].fillna(0)
     
     return df
