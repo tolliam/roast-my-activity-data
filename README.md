@@ -180,7 +180,7 @@ The app expects an activities CSV export with these key columns:
 - `Activity Date`: Date and time of activity
 - `Activity Type`: Type of activity (Run, Ride, etc.)
 - `Distance`: Distance in kilometers
-- `Elapsed Time`: Duration in seconds
+- `Moving Time`: Duration in seconds (time actually moving, excluding stops)
 - `Elevation Gain`: Elevation in meters
 - `Average Speed`: Speed in km/h
 

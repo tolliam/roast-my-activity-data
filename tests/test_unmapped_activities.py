@@ -9,7 +9,7 @@ from src.data_loader import load_strava_data
 def test_unmapped_activity_types_default_to_other():
     """Test that activity types not in ACTIVITY_GROUP_MAP are mapped to 'Other'."""
     # Create CSV with unmapped activity types (Yoga, Dance)
-    csv_data = """Activity Date,Activity Type,Elapsed Time,Distance,Average Speed,Elevation Gain
+    csv_data = """Activity Date,Activity Type,Moving Time,Distance,Average Speed,Elevation Gain
 "Jan 1, 2024, 10:00:00 AM",Yoga,1800,0.0,0.0,0
 "Jan 2, 2024, 10:00:00 AM",Dance,600,0.0,0.0,0"""
     
@@ -30,7 +30,7 @@ def test_unmapped_activity_types_default_to_other():
 
 def test_mixed_mapped_and_unmapped_activities():
     """Test that mixed mapped and unmapped activities are handled correctly."""
-    csv_data = """Activity Date,Activity Type,Elapsed Time,Distance,Average Speed,Elevation Gain
+    csv_data = """Activity Date,Activity Type,Moving Time,Distance,Average Speed,Elevation Gain
 "Jan 1, 2024, 10:00:00 AM",Run,1800,5.0,10.0,50
 "Jan 2, 2024, 10:00:00 AM",Yoga,1800,0.0,0.0,0
 "Jan 3, 2024, 10:00:00 AM",Dance,600,0.0,0.0,0
@@ -58,7 +58,7 @@ def test_mixed_mapped_and_unmapped_activities():
 
 def test_all_mapped_activities_still_work():
     """Test that fully mapped activities still work correctly."""
-    csv_data = """Activity Date,Activity Type,Elapsed Time,Distance,Average Speed,Elevation Gain
+    csv_data = """Activity Date,Activity Type,Moving Time,Distance,Average Speed,Elevation Gain
 "Jan 1, 2024, 10:00:00 AM",Run,1800,5.0,10.0,50
 "Jan 2, 2024, 10:00:00 AM",Ride,3600,25.0,25.0,100
 "Jan 3, 2024, 10:00:00 AM",Swim,1800,1000,2.0,0
