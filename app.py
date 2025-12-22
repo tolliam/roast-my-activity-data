@@ -230,7 +230,9 @@ def render_summary_metrics(stats, col_config=None, round_to_whole=False):
             if key in stats:
                 value = stats[key]
                 if fmt == ",":
-                    st.metric(label, f"{int(value):,}")
+                    # Add unit for elevation metrics
+                    unit = " m" if "Elevation" in label else ""
+                    st.metric(label, f"{int(value):,}{unit}")
                 elif fmt == ",.1f":
                     # Determine unit based on label
                     unit = "hrs" if "Duration" in label else "km"
