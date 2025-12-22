@@ -208,12 +208,13 @@ def create_sidebar_filters(df):
     return days_back, selected_activities, time_interval, theme
 
 
-def render_summary_metrics(stats, col_config=None):
+def render_summary_metrics(stats, col_config=None, round_to_whole=False):
     """Render summary metrics in columns.
     
     Args:
         stats: Dictionary of statistics to display.
         col_config: Optional list of (label, key, format) tuples.
+        round_to_whole: If True, rounds distance and duration to whole numbers instead of 1 decimal place.
     """
     if col_config is None:
         col_config = [
@@ -231,10 +232,15 @@ def render_summary_metrics(stats, col_config=None):
                 if fmt == ",":
                     st.metric(label, f"{int(value):,}")
                 elif fmt == ",.1f":
-                    if "Duration" in label:
-                        st.metric(label, f"{value:.1f} hrs")
+                    # Determine unit based on label
+                    unit = "hrs" if "Duration" in label else "km"
+                    
+                    if round_to_whole:
+                        # Round to whole number with comma separator for thousands
+                        st.metric(label, f"{int(round(value)):,} {unit}")
                     else:
-                        st.metric(label, f"{value:.1f} km")
+                        # Keep 1 decimal place
+                        st.metric(label, f"{value:.1f} {unit}")
                 else:
                     st.metric(label, f"{int(value):,} m")
 
@@ -588,7 +594,7 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
     
     # All-time summary metrics
     stats = calculate_summary_stats(df)
-    render_summary_metrics(stats)
+    render_summary_metrics(stats, round_to_whole=True)
     
     # Epic achievement metrics
     st.markdown("")
