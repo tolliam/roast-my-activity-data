@@ -349,7 +349,7 @@ def render_cheeky_metrics(cheeky):
     with col3:
         st.metric(
             "🏃‍♂️ Marathons",
-            f"{cheeky['marathons']:.1f}",
+            f"{cheeky['marathons']:,.0f}",
             help="Official marathon distance: 42.195 km (IAAF)"
         )
     
@@ -357,7 +357,7 @@ def render_cheeky_metrics(cheeky):
         if cheeky['faster_than_sloth'] >= 1:
             st.metric(
                 "🦥 vs Sloth Speed",
-                f"{cheeky['faster_than_sloth']:.0f}x faster",
+                f"{cheeky['faster_than_sloth']:,.0f}x faster",
                 help="A sloth would take this many times longer to cover your distance (Nat Geo: 0.24 km/h)"
             )
         else:
@@ -374,21 +374,21 @@ def render_cheeky_metrics(cheeky):
     with col1:
         st.metric(
             "🗼 Eiffel Towers",
-            f"{cheeky['eiffel_towers']:.1f}",
+            f"{cheeky['eiffel_towers']:,.0f}",
             help="330m to the tip (Paris official height)"
         )
     
     with col2:
         st.metric(
             "🏙️ Empire States",
-            f"{cheeky['empire_states']:.1f}",
+            f"{cheeky['empire_states']:,.0f}",
             help="443m to roof (ESB official)"
         )
     
     with col3:
         st.metric(
             "🏗️ Burj Khalifas",
-            f"{cheeky['burj_khalifas']:.2f}",
+            f"{cheeky['burj_khalifas']:,.0f}",
             help="828m - World's tallest building (Emaar)"
         )
     
@@ -432,7 +432,7 @@ def render_cheeky_metrics(cheeky):
         if cheeky['lotr_trilogies'] >= 1:
             st.metric(
                 "🧙‍♂️ LOTR Extended Trilogies",
-                f"{cheeky['lotr_trilogies']:.1f}",
+                f"{cheeky['lotr_trilogies']:,.0f}",
                 help="558 min total for extended trilogy (New Line Cinema)"
             )
         else:
