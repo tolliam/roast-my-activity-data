@@ -73,7 +73,7 @@ def calculate_exercise_obsession_score(df: pd.DataFrame) -> Tuple[int, str, str]
         description = "You probably dream about workouts. Your rest days need rest days."
     elif total_score >= 70:
         level = "Fitness Fanatic 💪"
-        description = "Your gym bag is permanently packed. You know all the PTs by name."
+        description = "Your gear is always ready to go. Exercise is a lifestyle, not a hobby."
     elif total_score >= 55:
         level = "Committed Crusher 🏃"
         description = "You've got a routine and you stick to it. Rain or shine, you're out there."
