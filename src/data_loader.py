@@ -28,6 +28,37 @@ ACTIVITY_GROUP_MAP = {
     "Unknown": "Other"
 }
 
+def is_race_activity(row: pd.Series) -> bool:
+    """
+    Determine if an activity is a race based on Competition field and keywords.
+    
+    Args:
+        row: A row from the activities DataFrame
+        
+    Returns:
+        True if the activity is a race, False otherwise
+    """
+    # Check Competition field (if it exists and is not empty/0/false)
+    if "Competition" in row.index:
+        competition_val = row["Competition"]
+        # Check if it's truthy (not NaN, not 0, not empty string, not False)
+        if pd.notna(competition_val) and competition_val not in [0, "0", "", False, "false", "False"]:
+            return True
+    
+    # Check for race keywords in activity name and description
+    race_keywords = ["race", "parkrun", "marathon", "10k", "5k", " 10k ", " 5k "]
+    
+    # Get activity name and description, converting to lowercase for case-insensitive matching
+    activity_name = str(row.get("Activity Name", "")).lower() if pd.notna(row.get("Activity Name")) else ""
+    activity_desc = str(row.get("Activity Description", "")).lower() if pd.notna(row.get("Activity Description")) else ""
+    
+    # Check if any keyword is in name or description
+    for keyword in race_keywords:
+        if keyword in activity_name or keyword in activity_desc:
+            return True
+    
+    return False
+
 def load_and_process_data(csv_path: str) -> pd.DataFrame:
     """
     Load and process Strava activity data from CSV.
@@ -100,6 +131,9 @@ def load_and_process_data(csv_path: str) -> pd.DataFrame:
     # Fill NaN values with 0 for numeric columns
     numeric_cols = ["Distance (km)", "Duration (min)", "Elevation Gain", "Elevation (m)", "Average Speed", "Average Speed (km/h)"]
     df[numeric_cols] = df[numeric_cols].fillna(0)
+    
+    # Add race detection column
+    df["Is Race"] = df.apply(is_race_activity, axis=1)
     
     return df
 

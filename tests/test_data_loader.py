@@ -4,7 +4,94 @@ import pytest
 import pandas as pd
 from datetime import datetime
 from io import StringIO
-from src.data_loader import load_strava_data, filter_by_activities, filter_by_date_range
+from src.data_loader import load_strava_data, filter_by_activities, filter_by_date_range, is_race_activity
+
+
+def test_race_detection_by_competition_field():
+    """Test that races are detected using the Competition field."""
+    csv_data = """Activity Date,Activity Name,Activity Type,Activity Description,Moving Time,Distance,Average Speed,Elevation Gain,Competition
+"Jan 1, 2024, 10:00:00 AM",Morning Run,Run,,3600,10.0,10.0,50,1
+"Jan 2, 2024, 10:00:00 AM",Casual Ride,Ride,,3600,25.0,25.0,100,0
+"Jan 3, 2024, 10:00:00 AM",Training Run,Run,,1800,5.0,10.0,25,"""
+    
+    csv_file = StringIO(csv_data)
+    df = load_strava_data(csv_file)
+    
+    # Check that Is Race column exists
+    assert "Is Race" in df.columns
+    
+    # Activity with Competition=1 should be a race
+    assert df[df["Activity Name"] == "Morning Run"]["Is Race"].iloc[0] == True
+    
+    # Activity with Competition=0 should not be a race
+    assert df[df["Activity Name"] == "Casual Ride"]["Is Race"].iloc[0] == False
+    
+    # Activity with empty Competition should not be a race
+    assert df[df["Activity Name"] == "Training Run"]["Is Race"].iloc[0] == False
+
+
+def test_race_detection_by_keywords():
+    """Test that races are detected by keywords in name and description."""
+    csv_data = """Activity Date,Activity Name,Activity Type,Activity Description,Moving Time,Distance,Average Speed,Elevation Gain
+"Jan 1, 2024, 10:00:00 AM",York parkrun,Run,,1800,5.0,10.0,25
+"Jan 2, 2024, 10:00:00 AM",London Marathon,Run,,10800,42.195,14.8,200
+"Jan 3, 2024, 10:00:00 AM",Morning Run,Run,Practicing for the 10k race,3600,10.0,10.0,50
+"Jan 4, 2024, 10:00:00 AM",Casual Run,Run,Easy training run,1800,5.0,10.0,25
+"Jan 5, 2024, 10:00:00 AM",Evening Run,Run,Nice 5k today,1500,5.0,12.0,30
+"Jan 6, 2024, 10:00:00 AM",Weekend Ride,Ride,,3600,50.0,50.0,200"""
+    
+    csv_file = StringIO(csv_data)
+    df = load_strava_data(csv_file)
+    
+    # parkrun keyword in name
+    assert df[df["Activity Name"] == "York parkrun"]["Is Race"].iloc[0] == True
+    
+    # marathon keyword in name
+    assert df[df["Activity Name"] == "London Marathon"]["Is Race"].iloc[0] == True
+    
+    # 10k and race keywords in description
+    assert df[df["Activity Name"] == "Morning Run"]["Is Race"].iloc[0] == True
+    
+    # 5k keyword in description
+    assert df[df["Activity Name"] == "Evening Run"]["Is Race"].iloc[0] == True
+    
+    # No race keywords
+    assert df[df["Activity Name"] == "Casual Run"]["Is Race"].iloc[0] == False
+    assert df[df["Activity Name"] == "Weekend Ride"]["Is Race"].iloc[0] == False
+
+
+def test_race_detection_case_insensitive():
+    """Test that race detection is case-insensitive."""
+    csv_data = """Activity Date,Activity Name,Activity Type,Activity Description,Moving Time,Distance,Average Speed,Elevation Gain
+"Jan 1, 2024, 10:00:00 AM",PARKRUN Morning,Run,,1800,5.0,10.0,25
+"Jan 2, 2024, 10:00:00 AM",Half Marathon Event,Run,,7200,21.1,10.5,100
+"Jan 3, 2024, 10:00:00 AM",Training,Run,Preparing for RACE,3600,10.0,10.0,50"""
+    
+    csv_file = StringIO(csv_data)
+    df = load_strava_data(csv_file)
+    
+    # All should be detected as races regardless of case
+    assert df["Is Race"].sum() == 3
+
+
+def test_race_count_metrics():
+    """Test that we can count races correctly."""
+    csv_data = """Activity Date,Activity Name,Activity Type,Activity Description,Moving Time,Distance,Average Speed,Elevation Gain,Competition
+"Jan 1, 2024, 10:00:00 AM",York parkrun,Run,,1800,5.0,10.0,25,
+"Jan 2, 2024, 10:00:00 AM",Training Run,Run,,3600,10.0,10.0,50,0
+"Jan 3, 2024, 10:00:00 AM",City Marathon,Run,,12600,42.195,12.0,200,1
+"Jan 4, 2024, 10:00:00 AM",Casual Ride,Ride,,3600,50.0,50.0,200,"""
+    
+    csv_file = StringIO(csv_data)
+    df = load_strava_data(csv_file)
+    
+    # Should have 2 races (parkrun by name, marathon by both name and Competition field)
+    race_count = df["Is Race"].sum()
+    assert race_count == 2
+    
+    # Non-race count
+    non_race_count = (~df["Is Race"]).sum()
+    assert non_race_count == 2
 
 
 def test_swimming_and_rowing_distance_conversion():
