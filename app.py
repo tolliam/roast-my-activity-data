@@ -21,7 +21,8 @@ from src.data_loader import (
 )
 from src.utils import (
     calculate_fun_metrics, calculate_cheeky_metrics, get_personal_records, 
-    calculate_summary_stats, format_metric_display, calculate_exercise_obsession_score
+    calculate_summary_stats, format_metric_display, calculate_exercise_obsession_score,
+    get_races
 )
 from src.visualizations_altair import (
     create_distance_timeline, create_activity_type_pie,
@@ -298,6 +299,24 @@ def render_recent_activity_tab(df_filtered, days_back, theme):
         width='stretch',
         hide_index=True
     )
+    
+    # Races table
+    st.subheader("🏁 Races")
+    races = get_races(df_filtered)
+    
+    if len(races) > 0:
+        # Format the display
+        races_display = races.copy()
+        races_display["Date"] = races_display["Date"].dt.strftime("%Y-%m-%d")
+        races_display["Distance (km)"] = races_display["Distance (km)"].apply(lambda x: f"{x:,.1f}")
+        
+        st.dataframe(
+            races_display,
+            width='stretch',
+            hide_index=True
+        )
+    else:
+        st.info("No races found in this time period.")
 
 
 def render_fun_metrics(metrics):
@@ -691,6 +710,24 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
     
     fig_heatmap = create_activity_heatmap(df, selected_year, theme=theme)
     st.altair_chart(fig_heatmap, width='stretch')
+    
+    # Races table
+    st.header("🏁 Races")
+    races = get_races(df)
+    
+    if len(races) > 0:
+        # Format the display
+        races_display = races.copy()
+        races_display["Date"] = races_display["Date"].dt.strftime("%Y-%m-%d")
+        races_display["Distance (km)"] = races_display["Distance (km)"].apply(lambda x: f"{x:,.1f}")
+        
+        st.dataframe(
+            races_display,
+            width='stretch',
+            hide_index=True
+        )
+    else:
+        st.info("No races found in your activity history.")
 
 
 def main():
