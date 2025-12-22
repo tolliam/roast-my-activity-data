@@ -18,6 +18,9 @@ def load_strava_data(file_path=None) -> pd.DataFrame:
     This function reads the Strava activities CSV, converts data types,
     calculates derived metrics, and maps activity types to groups.
     
+    Uses "Moving Time" for duration calculations if available (time actually moving),
+    otherwise falls back to "Elapsed Time" for backward compatibility.
+    
     Args:
         file_path: Path to the CSV file or UploadedFile object from Streamlit.
                   If None, uses the default path from config.
@@ -26,7 +29,7 @@ def load_strava_data(file_path=None) -> pd.DataFrame:
         A pandas DataFrame containing preprocessed activity data with columns:
         - Activity Date: datetime of activity
         - Distance (km): activity distance in kilometers
-        - Duration (min): activity duration in minutes
+        - Duration (min): activity duration in minutes (from Moving Time)
         - Elevation (m): elevation gain in meters
         - Average Speed (km/h): average speed in km/h
         - Activity Type: specific activity type
@@ -55,7 +58,13 @@ def load_strava_data(file_path=None) -> pd.DataFrame:
     
     # Convert numeric columns to float, handling any non-numeric values
     df["Distance"] = pd.to_numeric(df["Distance"], errors='coerce')
-    df["Elapsed Time"] = pd.to_numeric(df["Elapsed Time"], errors='coerce')
+    # Use Moving Time if available, otherwise fall back to Elapsed Time
+    if "Moving Time" in df.columns:
+        df["Moving Time"] = pd.to_numeric(df["Moving Time"], errors='coerce')
+        df["Time"] = df["Moving Time"]
+    else:
+        df["Elapsed Time"] = pd.to_numeric(df["Elapsed Time"], errors='coerce')
+        df["Time"] = df["Elapsed Time"]
     df["Elevation Gain"] = pd.to_numeric(df["Elevation Gain"], errors='coerce')
     df["Average Speed"] = pd.to_numeric(df["Average Speed"], errors='coerce')
     
@@ -70,7 +79,7 @@ def load_strava_data(file_path=None) -> pd.DataFrame:
     df.loc[df["Activity Type"] == "Swim", "Distance (km)"] = df.loc[df["Activity Type"] == "Swim", "Distance"] / 1000
     df.loc[df["Activity Type"] == "Rowing", "Distance (km)"] = df.loc[df["Activity Type"] == "Rowing", "Distance"] / 1000
     
-    df["Duration (min)"] = df["Elapsed Time"] / 60
+    df["Duration (min)"] = df["Time"] / 60
     df["Elevation (m)"] = df["Elevation Gain"]
     
     # Calculate average speed from distance and time (more reliable than CSV value)

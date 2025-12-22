@@ -11,7 +11,7 @@ def test_swimming_and_rowing_distance_conversion():
     """Test that swimming and rowing distances are correctly converted from meters to km."""
     # Create minimal CSV data with only the columns needed for testing
     # Swimming and Rowing distances are in meters in the CSV, other activities are in km
-    csv_data = """Activity Date,Activity Type,Elapsed Time,Distance,Average Speed,Elevation Gain
+    csv_data = """Activity Date,Activity Type,Moving Time,Distance,Average Speed,Elevation Gain
 "Jan 1, 2024, 10:00:00 AM",Swim,1800,1000,2.0,10
 "Jan 2, 2024, 10:00:00 AM",Rowing,600,2000,12.0,5
 "Jan 3, 2024, 10:00:00 AM",Ride,3600,25.5,25.5,100
