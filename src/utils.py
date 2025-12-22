@@ -354,8 +354,8 @@ def is_race(activity_name: str, activity_description: str = "") -> bool:
         "5k",
         "10km",
         "5km",
-        " 10,000",  # London 10,000
-        " 5,000",
+        "10,000",  # London 10,000
+        "5,000",
         "triathlon",
         "duathlon",
         "ironman",
