@@ -261,7 +261,22 @@ def render_recent_activity_tab(df_filtered, days_back, theme):
     
     # Summary metrics
     stats = calculate_summary_stats(df_filtered)
-    render_summary_metrics(stats)
+    
+    # Add race count to stats
+    race_count = df_filtered["Is Race"].sum() if "Is Race" in df_filtered.columns else 0
+    
+    # Render metrics with race count
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        st.metric("Total Activities", f"{int(stats['total_activities']):,}")
+    with col2:
+        st.metric("Total Distance", f"{stats['total_distance']:.1f} km")
+    with col3:
+        st.metric("Total Duration", f"{stats['total_duration']:.1f} hrs")
+    with col4:
+        st.metric("Total Elevation", f"{int(stats['total_elevation']):,} m")
+    with col5:
+        st.metric("🏁 Races", f"{int(race_count):,}")
     
     # Charts
     col1, col2 = st.columns(2)
@@ -598,7 +613,22 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
     
     # All-time summary metrics
     stats = calculate_summary_stats(df)
-    render_summary_metrics(stats, round_to_whole=True)
+    
+    # Add race count
+    race_count = df["Is Race"].sum() if "Is Race" in df.columns else 0
+    
+    # Render metrics with race count in a 5-column layout
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
+        st.metric("Total Activities", f"{int(stats['total_activities']):,}")
+    with col2:
+        st.metric("Total Distance", f"{int(round(stats['total_distance'])):,} km")
+    with col3:
+        st.metric("Total Duration", f"{int(round(stats['total_duration'])):,} hrs")
+    with col4:
+        st.metric("Total Elevation", f"{int(stats['total_elevation']):,} m")
+    with col5:
+        st.metric("🏁 Races", f"{int(race_count):,}")
     
     # Epic achievement metrics
     st.markdown("")
@@ -674,6 +704,36 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
     with pr_cols[3]:
         speed = prs['fastest_speed']
         st.metric("Fastest Speed", f"{int(speed) if not pd.isna(speed) else 0} km/h")
+    
+    # Race activities table
+    if "Is Race" in df.columns and race_count > 0:
+        st.header("🏁 Race Activities")
+        races_df = df[df["Is Race"] == True].copy()
+        
+        # Create formatted dataframe for display
+        display_races = races_df.sort_values("Activity Date", ascending=False)
+        
+        # Select columns to show
+        race_columns = ["Activity Date", "Activity Name", "Activity Type", "Distance (km)", 
+                       "Duration (min)", "Elevation (m)", "Average Speed (km/h)"]
+        
+        # Check if Activity Name exists, otherwise use Activity Type
+        if "Activity Name" not in display_races.columns:
+            race_columns.remove("Activity Name")
+        
+        display_races = display_races[race_columns].copy()
+        
+        # Format numeric columns
+        display_races["Distance (km)"] = display_races["Distance (km)"].apply(lambda x: f"{x:,.1f}")
+        display_races["Duration (min)"] = display_races["Duration (min)"].apply(lambda x: f"{x:,.0f}")
+        display_races["Elevation (m)"] = display_races["Elevation (m)"].apply(lambda x: f"{x:,.0f}")
+        display_races["Average Speed (km/h)"] = display_races["Average Speed (km/h)"].apply(lambda x: f"{x:,.1f}")
+        
+        st.dataframe(
+            display_races,
+            width='stretch',
+            hide_index=True
+        )
     
     # Calendar heatmap
     st.header("📅 Activity Calendar")
