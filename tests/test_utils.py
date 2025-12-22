@@ -107,9 +107,9 @@ def test_calculate_summary_stats_with_large_values():
     """Test summary statistics with values that need comma formatting."""
     from datetime import timedelta
     
-    # Create 100 activities spread evenly across a year
+    # Create 100 activities spread evenly across a year (~10 months)
     start_date = datetime(2024, 1, 1)
-    dates = [start_date + timedelta(days=i*3) for i in range(100)]  # Every 3 days for 300 days
+    dates = [start_date + timedelta(days=i*3) for i in range(100)]  # Every 3 days
     
     test_data = {
         'Activity Date': dates,
