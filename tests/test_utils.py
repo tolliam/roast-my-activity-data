@@ -80,3 +80,53 @@ def test_get_personal_records_no_hardcoded_3000():
     assert prs['longest_distance'] == 42.195, "Should return actual data, not 3000"
     assert prs['longest_duration'] == 180.0, "Should return actual data, not 43*60"
     assert prs['most_elevation'] == 100.0, "Should return actual data, not 3000"
+
+
+def test_calculate_summary_stats():
+    """Test summary statistics calculation for proper aggregation."""
+    test_data = {
+        'Activity Date': [datetime(2024, 1, 1), datetime(2024, 1, 2), datetime(2024, 1, 3)],
+        'Activity Type': ['Run', 'Ride', 'Run'],
+        'Distance (km)': [10.5, 50.3, 5.2],  # Total: 66.0
+        'Duration (min)': [60.0, 180.0, 30.0],  # Total: 270 min = 4.5 hours
+        'Elevation (m)': [100.0, 500.0, 50.0],  # Total: 650.0
+        'Average Speed (km/h)': [10.0, 30.0, 10.0]
+    }
+    df = pd.DataFrame(test_data)
+    
+    stats = calculate_summary_stats(df)
+    
+    # Verify calculations
+    assert stats['total_activities'] == 3, "Should count all activities"
+    assert stats['total_distance'] == 66.0, "Should sum all distances"
+    assert stats['total_duration'] == 4.5, "Should sum durations and convert to hours"
+    assert stats['total_elevation'] == 650.0, "Should sum all elevations"
+
+
+def test_calculate_summary_stats_with_large_values():
+    """Test summary statistics with values that need comma formatting."""
+    # Create 100 activities spread across multiple months
+    dates = []
+    for i in range(100):
+        month = (i // 30) + 1  # Spread across multiple months
+        day = (i % 30) + 1
+        dates.append(datetime(2024, min(month, 12), min(day, 28)))
+    
+    test_data = {
+        'Activity Date': dates,
+        'Activity Type': ['Run'] * 100,
+        'Distance (km)': [15.5] * 100,  # Total: 1,550.0
+        'Duration (min)': [90.0] * 100,  # Total: 9,000 min = 150 hours
+        'Elevation (m)': [120.0] * 100,  # Total: 12,000.0
+        'Average Speed (km/h)': [10.0] * 100
+    }
+    df = pd.DataFrame(test_data)
+    
+    stats = calculate_summary_stats(df)
+    
+    # Verify that values are calculated correctly (values > 1000)
+    assert stats['total_activities'] == 100
+    assert stats['total_distance'] == 1550.0, "Should correctly sum to value needing comma formatting"
+    assert stats['total_duration'] == 150.0, "Should correctly sum to value needing comma formatting"
+    assert stats['total_elevation'] == 12000.0, "Should correctly sum to value needing comma formatting"
+
