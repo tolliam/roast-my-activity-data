@@ -149,7 +149,7 @@ def load_strava_data():
         "Virtual Run": "Running",
         "Ride": "Cycling",
         "Walk": "Walking",
-        "Hike": "Walking",
+        "Hike": "Hiking",
         "Weight Training": "Strength",
         "Workout": "Strength",
         "Rowing": "Strength",
@@ -232,6 +232,7 @@ with tab_recent:
             "Cycling": "#28A197",        # Turquoise
             "Swimming": "#801650",       # Dark pink
             "Walking": "#F46A25",        # Orange
+            "Hiking": "#D4A01C",         # Dark gold/amber
             "Strength": "#A285D1",       # Light purple
             "Other": "#3D3D3D"           # Dark grey
         }
@@ -389,6 +390,7 @@ with tab_alltime:
             "Cycling": "#28A197",        # Turquoise
             "Swimming": "#801650",       # Dark pink
             "Walking": "#F46A25",        # Orange
+            "Hiking": "#D4A01C",         # Dark gold/amber
             "Strength": "#A285D1",       # Light purple
             "Other": "#3D3D3D"           # Dark grey
         }
