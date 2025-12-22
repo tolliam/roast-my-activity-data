@@ -232,18 +232,15 @@ def render_summary_metrics(stats, col_config=None, round_to_whole=False):
                 if fmt == ",":
                     st.metric(label, f"{int(value):,}")
                 elif fmt == ",.1f":
+                    # Determine unit based on label
+                    unit = "hrs" if "Duration" in label else "km"
+                    
                     if round_to_whole:
                         # Round to whole number with comma separator for thousands
-                        if "Duration" in label:
-                            st.metric(label, f"{int(round(value)):,} hrs")
-                        else:
-                            st.metric(label, f"{int(round(value)):,} km")
+                        st.metric(label, f"{int(round(value)):,} {unit}")
                     else:
                         # Keep 1 decimal place
-                        if "Duration" in label:
-                            st.metric(label, f"{value:.1f} hrs")
-                        else:
-                            st.metric(label, f"{value:.1f} km")
+                        st.metric(label, f"{value:.1f} {unit}")
                 else:
                     st.metric(label, f"{int(value):,} m")
 
