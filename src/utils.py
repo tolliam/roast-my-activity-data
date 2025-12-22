@@ -323,3 +323,152 @@ def format_metric_display(value: float, metric_type: str) -> Tuple[str, str]:
             return f"{int(value)} days", f"That's {total_hours:,} hours of activity!"
             
     return str(value), ""
+
+
+def is_race(activity_name: str, activity_description: str = "") -> bool:
+    """Determine if an activity is a race based on keywords in name/description.
+    
+    Args:
+        activity_name: Name of the activity.
+        activity_description: Optional description of the activity.
+        
+    Returns:
+        True if the activity is likely a race, False otherwise.
+        
+    Examples:
+        >>> is_race("Parkrun")
+        True
+        >>> is_race("Morning Run")
+        False
+        >>> is_race("Yorkshire marathon")
+        True
+    """
+    # Keywords that indicate a race (case-insensitive)
+    race_keywords = [
+        "race",
+        "parkrun",
+        "park run",
+        "marathon",  # covers "half marathon", "ultra marathon"
+        "half",  # covers "half marathon", "Chippenham Half", etc.
+        "10k",
+        "5k",
+        "10km",
+        "5km",
+        " 10,000",  # London 10,000
+        " 5,000",
+        "triathlon",
+        "duathlon",
+        "ironman",
+        "relay",
+        "championship",
+        "championships",
+        "competition",
+    ]
+    
+    # Anti-patterns that indicate NOT a race even if they contain race keywords
+    anti_patterns = [
+        "1/3 marathon",  # training run fraction
+        "almost half marathon",  # training run
+        "almost marathon",  # training run
+        "almost half",  # training run
+        "pre ",  # "pre race warm up"
+        "post ",  # "post race cool down"
+    ]
+    
+    # Combine name and description for searching
+    text = (activity_name + " " + activity_description).lower()
+    
+    # Check anti-patterns first
+    for pattern in anti_patterns:
+        if pattern in text:
+            return False
+    
+    # Check for race keywords
+    for keyword in race_keywords:
+        if keyword in text:
+            return True
+    
+    return False
+
+
+def format_race_time(seconds: float) -> str:
+    """Format time in seconds to HH:MM:SS or MM:SS format.
+    
+    Args:
+        seconds: Time in seconds.
+        
+    Returns:
+        Formatted time string as HH:MM:SS (if >= 1 hour) or MM:SS.
+        
+    Examples:
+        >>> format_race_time(3661)
+        '1:01:01'
+        >>> format_race_time(125)
+        '2:05'
+    """
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = int(seconds % 60)
+    
+    if hours > 0:
+        return f"{hours}:{minutes:02d}:{secs:02d}"
+    else:
+        return f"{minutes}:{secs:02d}"
+
+
+def get_races(df: pd.DataFrame) -> pd.DataFrame:
+    """Filter activities to return only races, sorted by date (most recent first).
+    
+    Args:
+        df: DataFrame containing activity data.
+        
+    Returns:
+        DataFrame containing only race activities with columns:
+        Race Name, Date, Distance (km), Time, Activity Type.
+        
+    Examples:
+        >>> races = get_races(df)
+        >>> print(races.columns)
+        Index(['Race Name', 'Date', 'Distance (km)', 'Time', 'Activity Type'], dtype='object')
+    """
+    # Filter to races only
+    df_copy = df.copy()
+    
+    # Handle missing descriptions
+    if 'Activity Description' not in df_copy.columns:
+        df_copy['Activity Description'] = ""
+    df_copy['Activity Description'] = df_copy['Activity Description'].fillna("")
+    
+    # Apply race detection
+    df_copy['Is Race'] = df_copy.apply(
+        lambda row: is_race(row.get('Activity Name', ''), row.get('Activity Description', '')),
+        axis=1
+    )
+    
+    races_df = df_copy[df_copy['Is Race']].copy()
+    
+    if len(races_df) == 0:
+        # Return empty DataFrame with correct columns
+        return pd.DataFrame(columns=['Race Name', 'Date', 'Distance (km)', 'Time', 'Activity Type'])
+    
+    # Format the time from seconds
+    if 'Elapsed Time' in races_df.columns:
+        races_df['Time'] = races_df['Elapsed Time'].apply(format_race_time)
+    elif 'Time' in races_df.columns:
+        races_df['Time'] = races_df['Time'].apply(format_race_time)
+    else:
+        races_df['Time'] = "N/A"
+    
+    # Create display DataFrame
+    result = pd.DataFrame({
+        'Race Name': races_df['Activity Name'],
+        'Date': races_df['Activity Date'],
+        'Distance (km)': races_df['Distance (km)'],
+        'Time': races_df['Time'],
+        'Activity Type': races_df['Activity Type']
+    })
+    
+    # Sort by date, most recent first
+    result = result.sort_values('Date', ascending=False)
+    
+    return result
