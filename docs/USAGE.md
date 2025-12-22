@@ -44,7 +44,8 @@ The app categorizes your Strava activities into broader groups for easier analys
 - **Running**: Run, Virtual Run
 - **Cycling**: Ride
 - **Swimming**: Swim, Open Water Swim
-- **Walking**: Walk, Hike
+- **Walking**: Walk
+- **Hiking**: Hike
 - **Strength**: Weight Training, Workout, Rowing
 - **Winter Sports**: Alpine Ski, Backcountry Ski, Nordic Ski, Snowboard
 - **Team Sports**: Rugby, Football, Netball, Basketball, Soccer
@@ -61,7 +62,7 @@ These groupings allow you to filter and analyze your activities by broader categ
 
 **Filter by Activity Type**
 - Multi-select dropdown
-- Options: Running, Cycling, Swimming, Walking, Strength, Other
+- Options: Running, Cycling, Swimming, Walking, Hiking, Strength, Other
 - Default: All types selected
 - Affects both Recent and All-Time tabs
 
@@ -252,6 +253,7 @@ Four key PRs automatically identified:
 - Cycling: Turquoise (#28A197)
 - Swimming: Dark pink (#801650)
 - Walking: Orange (#F46A25)
+- Hiking: Dark gold (#D4A01C)
 - Strength: Light purple (#A285D1)
 - Other: Dark grey (#3D3D3D)
 

@@ -118,6 +118,7 @@ def create_sidebar_filters(df):
     mode_options = {
         "🎯 All Rounder": "jackofall",
         "🏃 Runner": "runner",
+        "🥾 Hiker": "hiker",
         "🚴 Cyclist": "cyclist",
         "🏊 Swimmer": "swimmer",
         "🏋️ Gym Rat": "gym",
@@ -136,7 +137,8 @@ def create_sidebar_filters(df):
     
     # Preset mappings
     presets = {
-        "runner": ["Running", "Walking"],
+        "runner": ["Running"],
+        "hiker": ["Hiking", "Walking"],
         "cyclist": ["Cycling"],
         "swimmer": ["Swimming"],
         "gym": ["Strength"],
