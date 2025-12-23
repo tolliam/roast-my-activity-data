@@ -232,13 +232,13 @@ def get_monthly_trends(df: pd.DataFrame) -> pd.DataFrame:
     return monthly.sort_values("Month")
 
 
-def get_aggregated_trends(df: pd.DataFrame, time_interval: str = "quarter") -> pd.DataFrame:
+def get_aggregated_trends(df: pd.DataFrame, time_interval: str = "quarterly") -> pd.DataFrame:
     """
     Aggregate activity data by the specified time interval.
     
     Args:
         df: Activity DataFrame
-        time_interval: Time interval for aggregation ("month", "quarter", "year", "alltime")
+        time_interval: Time interval for aggregation ("monthly", "quarterly", "annual", "alltime")
         
     Returns:
         DataFrame with aggregated statistics
@@ -248,17 +248,17 @@ def get_aggregated_trends(df: pd.DataFrame, time_interval: str = "quarter") -> p
     
     df_copy = df.copy()
     
-    if time_interval == "month":
+    if time_interval == "monthly":
         df_copy["Period"] = df_copy["Activity Date"].dt.to_period("M").astype(str)
-    elif time_interval == "quarter":
+    elif time_interval == "quarterly":
         df_copy["Period"] = df_copy["Activity Date"].dt.to_period("Q").astype(str)
-    elif time_interval == "year":
+    elif time_interval == "annual":
         df_copy["Period"] = df_copy["Activity Date"].dt.to_period("Y").astype(str)
     elif time_interval == "alltime":
         # For alltime, aggregate everything into a single period
         df_copy["Period"] = "All Time"
     else:
-        # Default to quarter
+        # Default to quarterly
         df_copy["Period"] = df_copy["Activity Date"].dt.to_period("Q").astype(str)
     
     aggregated = df_copy.groupby("Period").agg({
@@ -278,13 +278,13 @@ def get_aggregated_trends(df: pd.DataFrame, time_interval: str = "quarter") -> p
     return aggregated
 
 
-def get_stacked_activity_data(df: pd.DataFrame, time_interval: str = "quarter") -> pd.DataFrame:
+def get_stacked_activity_data(df: pd.DataFrame, time_interval: str = "quarterly") -> pd.DataFrame:
     """
     Prepare activity data for stacked charts by activity group and time period.
     
     Args:
         df: Activity DataFrame
-        time_interval: Time interval for aggregation ("month", "quarter", "year", "alltime")
+        time_interval: Time interval for aggregation ("monthly", "quarterly", "annual", "alltime")
         
     Returns:
         DataFrame with activity counts by group and period
@@ -294,17 +294,17 @@ def get_stacked_activity_data(df: pd.DataFrame, time_interval: str = "quarter") 
     
     df_copy = df.copy()
     
-    if time_interval == "month":
+    if time_interval == "monthly":
         df_copy["Period"] = df_copy["Activity Date"].dt.to_period("M").astype(str)
-    elif time_interval == "quarter":
+    elif time_interval == "quarterly":
         df_copy["Period"] = df_copy["Activity Date"].dt.to_period("Q").astype(str)
-    elif time_interval == "year":
+    elif time_interval == "annual":
         df_copy["Period"] = df_copy["Activity Date"].dt.to_period("Y").astype(str)
     elif time_interval == "alltime":
         # For alltime, aggregate everything into a single period
         df_copy["Period"] = "All Time"
     else:
-        # Default to quarter
+        # Default to quarterly
         df_copy["Period"] = df_copy["Activity Date"].dt.to_period("Q").astype(str)
     
     # Group by period and activity group
