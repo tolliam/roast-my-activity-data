@@ -22,7 +22,7 @@ from src.data_loader import (
 from src.utils import (
     calculate_fun_metrics, calculate_cheeky_metrics, get_personal_records, 
     calculate_summary_stats, format_metric_display, calculate_exercise_obsession_score,
-    get_races
+    get_races, get_best_race_times, is_race
 )
 from src.visualizations_altair import (
     create_distance_timeline, create_activity_type_pie,
@@ -264,6 +264,11 @@ def render_recent_activity_tab(df_filtered, days_back, theme):
     stats = calculate_summary_stats(df_filtered)
     render_summary_metrics(stats)
     
+    # Races count
+    races = get_races(df_filtered)
+    if len(races) > 0:
+        st.metric("🏁 Races in Period", f"{len(races):,}")
+    
     # Charts
     col1, col2 = st.columns(2)
     
@@ -305,6 +310,9 @@ def render_recent_activity_tab(df_filtered, days_back, theme):
     races = get_races(df_filtered)
     
     if len(races) > 0:
+        # Show race count
+        st.metric("Total Races", f"{len(races)}")
+        
         # Format the display
         races_display = races.copy()
         races_display["Date"] = races_display["Date"].dt.strftime("%Y-%m-%d")
@@ -694,6 +702,42 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
         speed = prs['fastest_speed']
         st.metric("Fastest Speed", f"{int(speed) if not pd.isna(speed) else 0} km/h")
     
+    # Show best race times for runner mode
+    if 'activity_preset' in st.session_state and st.session_state.activity_preset == "runner":
+        st.markdown("")
+        st.subheader("🏃 Best Race Times")
+        best_times = get_best_race_times(df)
+        
+        race_cols = st.columns(4)
+        
+        with race_cols[0]:
+            if best_times['5k']:
+                st.metric("5K", best_times['5k']['time_formatted'], 
+                         help=f"{best_times['5k']['name']} on {best_times['5k']['date'].strftime('%Y-%m-%d')}")
+            else:
+                st.metric("5K", "N/A", help="No 5K races found")
+        
+        with race_cols[1]:
+            if best_times['10k']:
+                st.metric("10K", best_times['10k']['time_formatted'],
+                         help=f"{best_times['10k']['name']} on {best_times['10k']['date'].strftime('%Y-%m-%d')}")
+            else:
+                st.metric("10K", "N/A", help="No 10K races found")
+        
+        with race_cols[2]:
+            if best_times['half']:
+                st.metric("Half Marathon", best_times['half']['time_formatted'],
+                         help=f"{best_times['half']['name']} on {best_times['half']['date'].strftime('%Y-%m-%d')}")
+            else:
+                st.metric("Half Marathon", "N/A", help="No half marathon races found")
+        
+        with race_cols[3]:
+            if best_times['marathon']:
+                st.metric("Marathon", best_times['marathon']['time_formatted'],
+                         help=f"{best_times['marathon']['name']} on {best_times['marathon']['date'].strftime('%Y-%m-%d')}")
+            else:
+                st.metric("Marathon", "N/A", help="No marathon races found")
+    
     # Calendar heatmap
     st.header("📅 Activity Calendar")
     
@@ -716,10 +760,46 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
     races = get_races(df)
     
     if len(races) > 0:
-        # Format the display
+        # Show race count above table
+        st.metric("Total Races", f"{len(races):,}")
+        
+        # Format the display based on mode
         races_display = races.copy()
         races_display["Date"] = races_display["Date"].dt.strftime("%Y-%m-%d")
         races_display["Distance (km)"] = races_display["Distance (km)"].apply(lambda x: f"{x:,.1f}")
+        
+        # Add pace or speed based on mode
+        if 'activity_preset' in st.session_state and st.session_state.activity_preset == "runner":
+            # Calculate pace in min/km for runners
+            # Get the original data to calculate pace
+            races_with_data = df[df.apply(
+                lambda row: is_race(row.get('Activity Name', ''), row.get('Activity Description', '')),
+                axis=1
+            )].copy()
+            
+            if len(races_with_data) > 0:
+                # Calculate pace: time in seconds / distance in km = seconds per km, then convert to min/km
+                time_col = 'Elapsed Time' if 'Elapsed Time' in races_with_data.columns else 'Time'
+                races_with_data['Pace (min/km)'] = races_with_data[time_col] / races_with_data['Distance (km)'] / 60
+                
+                # Format pace as MM:SS
+                def format_pace(pace_mins):
+                    if pd.isna(pace_mins) or pace_mins <= 0:
+                        return "N/A"
+                    minutes = int(pace_mins)
+                    seconds = int((pace_mins - minutes) * 60)
+                    return f"{minutes}:{seconds:02d}"
+                
+                races_display['Pace'] = races_with_data['Pace (min/km)'].apply(format_pace).values
+        elif 'activity_preset' in st.session_state and st.session_state.activity_preset == "cyclist":
+            # Show speed in km/h for cyclists
+            races_with_data = df[df.apply(
+                lambda row: is_race(row.get('Activity Name', ''), row.get('Activity Description', '')),
+                axis=1
+            )].copy()
+            
+            if len(races_with_data) > 0 and 'Average Speed (km/h)' in races_with_data.columns:
+                races_display['Speed (km/h)'] = races_with_data['Average Speed (km/h)'].apply(lambda x: f"{x:,.1f}").values
         
         st.dataframe(
             races_display,
