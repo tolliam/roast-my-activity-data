@@ -8,7 +8,7 @@ ACTIVITY_GROUP_MAP = {
     "Run": "Running",
     "Virtual Run": "Running",
     "Ride": "Cycling",
-    "Walk": "Walking",
+    "Walk": "Hiking",
     "Hike": "Hiking",
     "Weight Training": "Strength",
     "Workout": "Strength",
@@ -95,7 +95,8 @@ def load_and_process_data(csv_path: str) -> pd.DataFrame:
     
     # Add aliases for consistency with the rest of the app
     df["Elevation (m)"] = df["Elevation Gain"]
-    df["Average Speed (km/h)"] = df["Average Speed"]
+    # Convert Average Speed from m/s to km/h
+    df["Average Speed (km/h)"] = df["Average Speed"] * 3.6
     
     # Fill NaN values with 0 for numeric columns
     numeric_cols = ["Distance (km)", "Duration (min)", "Elevation Gain", "Elevation (m)", "Average Speed", "Average Speed (km/h)"]
