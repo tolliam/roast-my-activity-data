@@ -1,6 +1,6 @@
 # 🔥 Roast My Activity Data
 
-A comprehensive, professional-grade activity analytics dashboard built with Streamlit. Transform your activity data into beautiful, interactive visualizations and gain deep insights into your athletic performance.
+A friendly, accessible activity analytics dashboard built with Streamlit. Transform your activity data into beautiful, interactive visualizations and gain insights into your athletic performance.
 
 **✨ This app was 100% vibe coded ✨**
 
@@ -35,10 +35,10 @@ A comprehensive, professional-grade activity analytics dashboard built with Stre
 - **Calendar Heatmap**: Visualize activity patterns throughout the year
 - **Quarterly Breakdown**: Detailed statistics by quarter
 
-### 🎨 Professional Design
+### 🎨 Clean Design
 - Responsive layout with customizable sidebar
 - Clean, modern UI with gradient styling
-- Professional data tables and metric cards
+- Organized data tables and metric cards
 
 ## 📋 Requirements
 
