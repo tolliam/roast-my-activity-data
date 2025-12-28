@@ -10,7 +10,7 @@ setup(
     version="1.0.0",
     author="Your Name",
     author_email="your.email@example.com",
-    description="A comprehensive Strava activity analytics dashboard",
+    description="A friendly Strava activity analytics dashboard",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/yourusername/roast-my-activity-data",

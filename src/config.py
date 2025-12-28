@@ -7,7 +7,7 @@ settings used throughout the application.
 from typing import Dict
 
 # Version
-VERSION = "0.9.2"
+VERSION = "0.9.3"
 
 # Application Settings
 APP_TITLE = "🔥 Roast My Activity Data"

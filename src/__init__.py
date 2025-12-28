@@ -1,4 +1,4 @@
-"""Roast My Strava - A comprehensive Strava activity analytics application."""
+"""Roast My Strava - A friendly Strava activity analytics application."""
 
 __version__ = "1.0.0"
 __author__ = "Your Name"

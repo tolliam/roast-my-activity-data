@@ -4,7 +4,7 @@ Technical overview of the Roast My Strava application architecture.
 
 ## System Overview
 
-Roast My Strava is a Streamlit-based web application that provides comprehensive analytics for Strava activity data. The application follows a modular architecture with clear separation of concerns.
+Roast My Strava is a Streamlit-based web application that provides activity analytics for Strava data. The application follows a modular architecture with clear separation of concerns.
 
 ## Architecture Diagram
 
