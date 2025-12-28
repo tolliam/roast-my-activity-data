@@ -607,6 +607,13 @@ def render_help_tab():
     """Render the Help/Instructions tab content."""
     st.header("❓ Help & Instructions")
     
+    # Disclaimer
+    st.warning("""
+    ⚠️ **Disclaimer**: This app is 100% vibe coded! While we strive for accuracy, bugs may exist. 
+    If you spot any issues, weird behavior, or have suggestions, please [raise an issue on GitHub](https://github.com/tolliam/roast-my-activity-data/issues). 
+    We appreciate your feedback! 🙏
+    """)
+    
     # Introduction
     st.markdown("""
     Welcome to the Roast My Activity Data dashboard! This page explains how your activities 
