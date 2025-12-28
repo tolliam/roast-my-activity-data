@@ -379,7 +379,7 @@ def create_activity_heatmap(df: pd.DataFrame, current_year: int,
         x=alt.X('Week:O', title='Week', axis=alt.Axis(labelAngle=0, values=[1, 10, 20, 30, 40, 50])),
         y=alt.Y('Day:N', title='', sort=day_names, axis=alt.Axis(labelAngle=0)),
         color=alt.Color('Count:Q', 
-                       scale=alt.Scale(scheme='greens', domain=[0, max(heatmap_data["Count"].max(), 1)]),
+                       scale=alt.Scale(scheme='blues', domain=[0, max(heatmap_data["Count"].max(), 1)]),
                        legend=alt.Legend(title="Activities", gradientLength=100, gradientThickness=10)),
         tooltip=['Week:O', 'Day:N', 'Count:Q']
     ).properties(
@@ -721,7 +721,7 @@ def create_day_hour_heatmap(df: pd.DataFrame, title: str = "Activity Patterns: D
     # Ensure proper day ordering
     day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     
-    chart = alt.Chart(df).mark_rect().encode(
+    chart = alt.Chart(df).mark_rect(cornerRadius=2, stroke='white', strokeWidth=1).encode(
         x=alt.X('Hour:O', title='Hour of Day', axis=alt.Axis(labelColor=t['font_color'], labelAngle=0)),
         y=alt.Y('Day:N', title='Day of Week', sort=day_order, axis=alt.Axis(labelColor=t['font_color'])),
         color=alt.Color(

@@ -1059,7 +1059,16 @@ def main():
     
     # Show data source selection if data not loaded
     if not st.session_state.data_loaded:
-        st.markdown("### Welcome! Let's get started with your activity data")
+        st.markdown("### Welcome")
+        st.markdown("""
+        This was created to help people dive into the wealth of data generated from their Strava activities. 
+        
+        Upload your Strava data to discover patterns in your training, visualize your progress over time, 
+        and uncover insights about when and how you work out. From personal records to fun comparative 
+        metrics, this dashboard transforms your activity data into meaningful stories.
+        
+        Your data stays local in your browser - nothing is stored or sent anywhere.
+        """)
         st.markdown("---")
         
         col1, col2 = st.columns(2)
