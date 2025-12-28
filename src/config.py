@@ -7,13 +7,13 @@ settings used throughout the application.
 from typing import Dict
 
 # Version
-VERSION = "0.8.1"
+VERSION = "0.9.0"
 
 # Application Settings
 APP_TITLE = "🔥 Roast My Activity Data"
 DEFAULT_DAYS_BACK = 30
 MIN_DAYS_BACK = 1
-MAX_DAYS_BACK = 90
+MAX_DAYS_BACK = 365
 
 # Data Settings
 DATA_FILE_PATH = "data/activities.csv"

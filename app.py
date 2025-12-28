@@ -18,7 +18,8 @@ from src.data_loader import (
     load_strava_data, filter_by_activities, 
     filter_by_date_range, get_quarterly_stats, get_monthly_trends,
     get_aggregated_trends, get_stacked_activity_data,
-    get_time_of_day_stats, get_hourly_activity_distribution, get_day_hour_heatmap_data
+    get_time_of_day_stats, get_hourly_activity_distribution, get_day_hour_heatmap_data,
+    get_day_of_week_stats, get_month_of_year_stats
 )
 from src.utils import (
     calculate_fun_metrics, calculate_cheeky_metrics, get_personal_records, 
@@ -32,7 +33,7 @@ from src.visualizations_altair import (
     create_activity_heatmap, create_exercise_obsession_gauge,
     create_time_of_day_pie, create_hourly_activity_chart,
     create_day_hour_heatmap, create_time_performance_chart,
-    create_pace_speed_timeline
+    create_pace_speed_timeline, create_day_of_week_chart, create_month_of_year_chart
 )
 
 
@@ -391,7 +392,7 @@ def render_recent_activity_tab(df_filtered, days_back, theme):
             # Day-hour heatmap
             heatmap_data = get_day_hour_heatmap_data(df_filtered)
             if len(heatmap_data) > 0:
-                fig_heatmap = create_day_hour_heatmap(heatmap_data, theme=theme)
+                fig_heatmap = create_day_hour_heatmap(heatmap_data, title="Weekly Activity Pattern: When Do You Work Out?", theme=theme)
                 if fig_heatmap:
                     st.altair_chart(fig_heatmap, width='stretch')
         else:
@@ -776,11 +777,6 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
     
     # Time series charts - only show if not alltime single point
     if time_interval != "alltime":
-        # Cumulative distance chart
-        fig_cumulative = create_cumulative_distance_chart(period_data, interval=time_interval, theme=theme)
-        if fig_cumulative:
-            st.altair_chart(fig_cumulative, width='stretch')
-        
         # Trends chart
         fig_trends = create_activity_trends_chart(period_data, interval=time_interval, theme=theme)
         if fig_trends:
@@ -798,6 +794,11 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
         fig_pace_speed = create_pace_speed_timeline(df, interval=time_interval, title="Fastest Pace & Speed by Period", theme=theme)
         if fig_pace_speed:
             st.altair_chart(fig_pace_speed, width='stretch')
+        
+        # Cumulative distance chart
+        fig_cumulative = create_cumulative_distance_chart(period_data, interval=time_interval, theme=theme)
+        if fig_cumulative:
+            st.altair_chart(fig_cumulative, width='stretch')
     else:
         st.info("📊 Select a time interval (Monthly, Quarterly, or Annual) from the sidebar to view time series charts")
     
@@ -862,7 +863,36 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
     
     # Time of Day Analysis (All-Time)
     st.markdown("---")
-    st.header("⏰ Time of Day Patterns")
+    st.header("📊 Activity Patterns")
+    
+    # Day of Week & Month Analysis
+    st.subheader("📅 When Do You Like to Work Out?")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        day_stats = get_day_of_week_stats(df)
+        if len(day_stats) > 0:
+            most_active_day = day_stats.loc[day_stats['Count'].idxmax(), 'Day of Week']
+            st.metric("🗓️ Most Active Day", most_active_day, 
+                     help=f"{day_stats.loc[day_stats['Count'].idxmax(), 'Count']} activities on {most_active_day}s")
+            fig_day = create_day_of_week_chart(day_stats, title="Activity Distribution by Day of Week", theme=theme)
+            if fig_day:
+                st.altair_chart(fig_day, width='stretch')
+    
+    with col2:
+        month_stats = get_month_of_year_stats(df)
+        if len(month_stats) > 0:
+            most_active_month = month_stats.loc[month_stats['Count'].idxmax(), 'Month']
+            st.metric("📆 Most Active Month", most_active_month,
+                     help=f"{month_stats.loc[month_stats['Count'].idxmax(), 'Count']} activities in {most_active_month}")
+            fig_month = create_month_of_year_chart(month_stats, title="Activity Distribution by Month", theme=theme)
+            if fig_month:
+                st.altair_chart(fig_month, width='stretch')
+    
+    # Time of Day Analysis
+    st.markdown("")
+    st.subheader("⏰ Time of Day Patterns")
     
     if "Time of Day" in df.columns and "Hour of Day" in df.columns:
         time_stats = get_time_of_day_stats(df)
@@ -883,8 +913,7 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
                 morning_pct = (morning_count / len(df) * 100) if len(df) > 0 else 0
                 st.metric(
                     "🌄 Morning Activities",
-                    f"{morning_count}",
-                    delta=f"{morning_pct:.1f}%",
+                    f"{morning_count} ({morning_pct:.1f}%)",
                     help="Activities between 5am-12pm"
                 )
             
@@ -893,8 +922,7 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
                 afternoon_pct = (afternoon_count / len(df) * 100) if len(df) > 0 else 0
                 st.metric(
                     "☀️ Afternoon Activities",
-                    f"{afternoon_count}",
-                    delta=f"{afternoon_pct:.1f}%",
+                    f"{afternoon_count} ({afternoon_pct:.1f}%)",
                     help="Activities between 12pm-5pm"
                 )
             
@@ -903,8 +931,7 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
                 evening_pct = (evening_count / len(df) * 100) if len(df) > 0 else 0
                 st.metric(
                     "🌆 Evening Activities",
-                    f"{evening_count}",
-                    delta=f"{evening_pct:.1f}%",
+                    f"{evening_count} ({evening_pct:.1f}%)",
                     help="Activities between 5pm-9pm"
                 )
             

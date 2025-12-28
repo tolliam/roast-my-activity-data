@@ -236,7 +236,7 @@ def get_monthly_trends(df: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame()
     
     df_copy = df.copy()
-    df_copy["Month"] = df_copy["Activity Date"].dt.to_period("M").astype(str)
+    df_copy["Month"] = df_copy["Activity Date"].dt.strftime("%Y %b")
     
     monthly = df_copy.groupby("Month").agg({
         "Distance (km)": "sum",
@@ -268,7 +268,7 @@ def get_aggregated_trends(df: pd.DataFrame, time_interval: str = "quarterly") ->
     df_copy = df.copy()
     
     if time_interval == "monthly":
-        df_copy["Period"] = df_copy["Activity Date"].dt.to_period("M").astype(str)
+        df_copy["Period"] = df_copy["Activity Date"].dt.strftime("%Y %b")
     elif time_interval == "quarterly":
         df_copy["Period"] = df_copy["Activity Date"].dt.to_period("Q").astype(str)
     elif time_interval == "annual":
@@ -314,7 +314,7 @@ def get_stacked_activity_data(df: pd.DataFrame, time_interval: str = "quarterly"
     df_copy = df.copy()
     
     if time_interval == "monthly":
-        df_copy["Period"] = df_copy["Activity Date"].dt.to_period("M").astype(str)
+        df_copy["Period"] = df_copy["Activity Date"].dt.strftime("%Y %b")
     elif time_interval == "quarterly":
         df_copy["Period"] = df_copy["Activity Date"].dt.to_period("Q").astype(str)
     elif time_interval == "annual":
@@ -420,3 +420,62 @@ def get_day_hour_heatmap_data(df: pd.DataFrame) -> pd.DataFrame:
     heatmap_data["Day"] = pd.Categorical(heatmap_data["Day"], categories=day_order, ordered=True)
     
     return heatmap_data.sort_values(["Day", "Hour"])
+
+
+def get_day_of_week_stats(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Get activity statistics by day of week.
+    
+    Args:
+        df: Activity DataFrame
+        
+    Returns:
+        DataFrame with activity counts and percentages by day of week
+    """
+    if "Day of Week" not in df.columns or len(df) == 0:
+        return pd.DataFrame()
+    
+    # Count activities by day of week
+    day_counts = df.groupby("Day of Week").size().reset_index(name="Count")
+    
+    # Order days of week
+    day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    day_counts["Day of Week"] = pd.Categorical(day_counts["Day of Week"], categories=day_order, ordered=True)
+    day_counts = day_counts.sort_values("Day of Week")
+    
+    # Calculate percentage
+    day_counts["Percentage"] = (day_counts["Count"] / len(df) * 100).round(1)
+    
+    return day_counts
+
+
+def get_month_of_year_stats(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Get activity statistics by month of year.
+    
+    Args:
+        df: Activity DataFrame
+        
+    Returns:
+        DataFrame with activity counts and percentages by month
+    """
+    if "Activity Date" not in df.columns or len(df) == 0:
+        return pd.DataFrame()
+    
+    # Extract month from date
+    df_copy = df.copy()
+    df_copy["Month"] = df_copy["Activity Date"].dt.month_name()
+    
+    # Count activities by month
+    month_counts = df_copy.groupby("Month").size().reset_index(name="Count")
+    
+    # Order months
+    month_order = ["January", "February", "March", "April", "May", "June", 
+                   "July", "August", "September", "October", "November", "December"]
+    month_counts["Month"] = pd.Categorical(month_counts["Month"], categories=month_order, ordered=True)
+    month_counts = month_counts.sort_values("Month")
+    
+    # Calculate percentage
+    month_counts["Percentage"] = (month_counts["Count"] / len(df) * 100).round(1)
+    
+    return month_counts

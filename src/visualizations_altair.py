@@ -192,8 +192,8 @@ def create_cumulative_distance_chart(period_data: pd.DataFrame,
         y=alt.Y('Cumulative Distance:Q', title='Total Distance (km)')
     )
     
-    line = base.mark_line(color=t['accent_color'], strokeWidth=3)
-    points = base.mark_circle(color=t['accent_color'], size=60)
+    line = base.mark_line(color='#12436D', strokeWidth=3)
+    points = base.mark_circle(color='#12436D', size=60)
     
     chart = (line + points).properties(
         title=title,
@@ -493,7 +493,7 @@ def create_pace_speed_timeline(df: pd.DataFrame, interval: str = "quarterly",
     
     # Add period column based on interval
     if interval == "monthly":
-        plot_df["Period"] = plot_df["Activity Date"].dt.to_period("M").astype(str)
+        plot_df["Period"] = plot_df["Activity Date"].dt.strftime("%Y %b")
     elif interval == "quarterly":
         plot_df["Period"] = plot_df["Activity Date"].dt.to_period("Q").astype(str)
     elif interval == "annual":
@@ -530,7 +530,7 @@ def create_pace_speed_timeline(df: pd.DataFrame, interval: str = "quarterly",
         
         # Use bar chart for better visualization of per-period data
         pace_chart = alt.Chart(pace_agg).mark_bar(color="#12436D").encode(
-            x=alt.X('Period:N', title='Period', axis=alt.Axis(labelColor=t['font_color'])),
+            x=alt.X('Period:N', title='Period', axis=alt.Axis(labelColor=t['font_color'], labelAngle=0)),
             y=alt.Y('Display Value:Q', 
                    title='Fastest Pace (min/km)', 
                    scale=alt.Scale(zero=False),  # Don't force zero to show variation better
@@ -550,8 +550,8 @@ def create_pace_speed_timeline(df: pd.DataFrame, interval: str = "quarterly",
             "Activity Date": "first"
         }).reset_index()
         
-        speed_chart = alt.Chart(speed_agg).mark_bar(color="#F46A25").encode(
-            x=alt.X('Period:N', title='Period', axis=alt.Axis(labelColor=t['font_color'])),
+        speed_chart = alt.Chart(speed_agg).mark_bar(color="#12436D").encode(
+            x=alt.X('Period:N', title='Period', axis=alt.Axis(labelColor=t['font_color'], labelAngle=0)),
             y=alt.Y('Display Value:Q', 
                    title='Fastest Speed (km/h)',
                    scale=alt.Scale(zero=False),
@@ -799,6 +799,87 @@ def create_time_performance_chart(df: pd.DataFrame, title: str = "Average Perfor
             alt.Tooltip('Avg Distance:Q', title='Avg Distance (km)'),
             alt.Tooltip('Avg Duration:Q', title='Avg Duration (min)'),
             alt.Tooltip('Avg Speed:Q', title='Avg Speed (km/h)')
+        ]
+    ).properties(
+        title=alt.TitleParams(text=title, color=t['title_color'], fontSize=16),
+        height=300
+    ).configure(
+        background=t['background']
+    ).configure_axis(
+        gridColor=t['grid_color'],
+        titleColor=t['title_color']
+    )
+    
+    return chart
+
+
+def create_day_of_week_chart(df: pd.DataFrame, title: str = "Activity Distribution by Day of Week",
+                              theme: Dict = None) -> Optional[alt.Chart]:
+    """Create a bar chart showing activity distribution by day of week.
+    
+    Args:
+        df: DataFrame with 'Day of Week' and 'Count' columns.
+        title: Chart title.
+        theme: Dict containing theme colors.
+        
+    Returns:
+        Altair bar chart or None if data is insufficient.
+    """
+    if len(df) == 0:
+        return None
+    
+    t = get_altair_theme(theme)
+    
+    day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    
+    chart = alt.Chart(df).mark_bar(color='#12436D').encode(
+        x=alt.X('Day of Week:N', title='Day of Week', sort=day_order, axis=alt.Axis(labelColor=t['font_color'], labelAngle=0)),
+        y=alt.Y('Count:Q', title='Number of Activities', axis=alt.Axis(labelColor=t['font_color'])),
+        tooltip=[
+            alt.Tooltip('Day of Week:N', title='Day'),
+            alt.Tooltip('Count:Q', title='Activities'),
+            alt.Tooltip('Percentage:Q', title='Percentage', format='.1f')
+        ]
+    ).properties(
+        title=alt.TitleParams(text=title, color=t['title_color'], fontSize=16),
+        height=300
+    ).configure(
+        background=t['background']
+    ).configure_axis(
+        gridColor=t['grid_color'],
+        titleColor=t['title_color']
+    )
+    
+    return chart
+
+
+def create_month_of_year_chart(df: pd.DataFrame, title: str = "Activity Distribution by Month",
+                                theme: Dict = None) -> Optional[alt.Chart]:
+    """Create a bar chart showing activity distribution by month of year.
+    
+    Args:
+        df: DataFrame with 'Month' and 'Count' columns.
+        title: Chart title.
+        theme: Dict containing theme colors.
+        
+    Returns:
+        Altair bar chart or None if data is insufficient.
+    """
+    if len(df) == 0:
+        return None
+    
+    t = get_altair_theme(theme)
+    
+    month_order = ["January", "February", "March", "April", "May", "June", 
+                   "July", "August", "September", "October", "November", "December"]
+    
+    chart = alt.Chart(df).mark_bar(color='#12436D').encode(
+        x=alt.X('Month:N', title='Month', sort=month_order, axis=alt.Axis(labelColor=t['font_color'], labelAngle=0)),
+        y=alt.Y('Count:Q', title='Number of Activities', axis=alt.Axis(labelColor=t['font_color'])),
+        tooltip=[
+            alt.Tooltip('Month:N', title='Month'),
+            alt.Tooltip('Count:Q', title='Activities'),
+            alt.Tooltip('Percentage:Q', title='Percentage', format='.1f')
         ]
     ).properties(
         title=alt.TitleParams(text=title, color=t['title_color'], fontSize=16),
