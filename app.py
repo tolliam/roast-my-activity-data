@@ -31,7 +31,8 @@ from src.visualizations_altair import (
     create_activity_trends_chart, create_stacked_activity_chart,
     create_activity_heatmap, create_exercise_obsession_gauge,
     create_time_of_day_pie, create_hourly_activity_chart,
-    create_day_hour_heatmap, create_time_performance_chart
+    create_day_hour_heatmap, create_time_performance_chart,
+    create_pace_speed_timeline
 )
 
 
@@ -791,6 +792,12 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
             st.altair_chart(fig_stacked, width='stretch')
         else:
             st.info("Activity composition chart requires multiple time periods")
+        
+        # Pace/Speed progression
+        st.markdown("")
+        fig_pace_speed = create_pace_speed_timeline(df, interval=time_interval, title="Fastest Pace & Speed by Period", theme=theme)
+        if fig_pace_speed:
+            st.altair_chart(fig_pace_speed, width='stretch')
     else:
         st.info("📊 Select a time interval (Monthly, Quarterly, or Annual) from the sidebar to view time series charts")
     

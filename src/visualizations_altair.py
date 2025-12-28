@@ -146,9 +146,9 @@ def create_duration_histogram(df: pd.DataFrame, title: str = "Duration Distribut
     t = get_altair_theme(theme)
     
     chart = alt.Chart(df).mark_bar(color=t['primary_color'], opacity=0.85).encode(
-        x=alt.X('Duration (min):Q', bin=alt.Bin(maxbins=15), title='Duration (min)'),
+        x=alt.X('Duration (min):Q', bin=alt.Bin(maxbins=15), title='Duration (minutes)', axis=alt.Axis(format='d')),
         y=alt.Y('count():Q', title='Count'),
-        tooltip=[alt.Tooltip('Duration (min):Q', bin=alt.Bin(maxbins=15)), 'count():Q']
+        tooltip=[alt.Tooltip('Duration (min):Q', bin=alt.Bin(maxbins=15), title='Duration (minutes)', format='d'), 'count():Q']
     ).properties(
         title=title,
         height=300
@@ -188,7 +188,7 @@ def create_cumulative_distance_chart(period_data: pd.DataFrame,
         return None
     
     base = alt.Chart(period_data).encode(
-        x=alt.X('Period:N', title='Period', axis=alt.Axis(labelAngle=-45 if interval == 'monthly' else 0)),
+        x=alt.X('Period:N', title='Period', axis=alt.Axis(labelAngle=0)),
         y=alt.Y('Cumulative Distance:Q', title='Total Distance (km)')
     )
     
@@ -235,7 +235,7 @@ def create_activity_trends_chart(period_data: pd.DataFrame,
     
     # Create base encoding
     base = alt.Chart(period_data).encode(
-        x=alt.X('Period:N', title='Period', axis=alt.Axis(labelAngle=-45 if interval == 'monthly' else 0))
+        x=alt.X('Period:N', title='Period', axis=alt.Axis(labelAngle=0))
     )
     
     # Distance line (left axis)
@@ -308,7 +308,7 @@ def create_stacked_activity_chart(activity_data: pd.DataFrame,
     color_range = list(ACTIVITY_COLORS.values())
     
     chart = alt.Chart(activity_data).mark_bar().encode(
-        x=alt.X('Period:N', title='Period', axis=alt.Axis(labelAngle=-45 if interval == 'monthly' else 0)),
+        x=alt.X('Period:N', title='Period', axis=alt.Axis(labelAngle=0)),
         y=alt.Y('Count:Q', title='Number of Activities', stack='zero'),
         color=alt.Color('Activity Group:N',
                        scale=alt.Scale(domain=color_domain, range=color_range),
@@ -463,6 +463,137 @@ def create_exercise_obsession_gauge(score: int, level: str, theme: Dict = None) 
     return chart
 
 
+def create_pace_speed_timeline(df: pd.DataFrame, interval: str = "quarterly",
+                               title: str = "Pace/Speed Over Time",
+                               theme: Dict = None) -> Optional[alt.Chart]:
+    """Create a time series chart showing fastest pace for running and speed for cycling per period.
+    
+    Args:
+        df: Activity DataFrame with Date, Activity Group, and speed data.
+        interval: Time interval for aggregation ("monthly", "quarterly", "annual", "alltime").
+        title: Chart title.
+        theme: Dict containing theme colors.
+        
+    Returns:
+        Altair chart or None if data is insufficient.
+    """
+    if len(df) == 0 or "Average Speed (km/h)" not in df.columns:
+        return None
+    
+    t = get_altair_theme(theme)
+    
+    # Filter to running and cycling activities with valid speed data (exclude hiking)
+    plot_df = df[
+        (df["Activity Group"].isin(["Running", "Cycling"])) &
+        (df["Average Speed (km/h)"] > 0)
+    ].copy()
+    
+    if len(plot_df) == 0:
+        return None
+    
+    # Add period column based on interval
+    if interval == "monthly":
+        plot_df["Period"] = plot_df["Activity Date"].dt.to_period("M").astype(str)
+    elif interval == "quarterly":
+        plot_df["Period"] = plot_df["Activity Date"].dt.to_period("Q").astype(str)
+    elif interval == "annual":
+        plot_df["Period"] = plot_df["Activity Date"].dt.to_period("Y").astype(str)
+    elif interval == "alltime":
+        plot_df["Period"] = "All Time"
+    else:
+        plot_df["Period"] = plot_df["Activity Date"].dt.to_period("Q").astype(str)
+    
+    # Calculate pace for running (min/km) and keep speed for cycling (km/h)
+    def calculate_display_value(row):
+        if row["Activity Group"] == "Running":
+            # Convert km/h to min/km
+            return 60 / row["Average Speed (km/h)"]
+        else:
+            # Keep as km/h for cycling
+            return row["Average Speed (km/h)"]
+    
+    plot_df["Display Value"] = plot_df.apply(calculate_display_value, axis=1)
+    
+    # Separate pace and speed data
+    pace_data = plot_df[plot_df["Activity Group"] == "Running"].copy()
+    speed_data = plot_df[plot_df["Activity Group"] == "Cycling"].copy()
+    
+    charts = []
+    
+    # Pace chart (running only) - find fastest (minimum) pace per period
+    if len(pace_data) > 0:
+        # Group by period, get fastest pace (minimum value)
+        pace_agg = pace_data.groupby("Period").agg({
+            "Display Value": "min",  # Fastest pace = lowest value
+            "Activity Date": "first"  # Keep a date for reference
+        }).reset_index()
+        
+        # Use bar chart for better visualization of per-period data
+        pace_chart = alt.Chart(pace_agg).mark_bar(color="#12436D").encode(
+            x=alt.X('Period:N', title='Period', axis=alt.Axis(labelColor=t['font_color'])),
+            y=alt.Y('Display Value:Q', 
+                   title='Fastest Pace (min/km)', 
+                   scale=alt.Scale(zero=False),  # Don't force zero to show variation better
+                   axis=alt.Axis(labelColor=t['font_color'])),
+            tooltip=[
+                alt.Tooltip('Period:N', title='Period'),
+                alt.Tooltip('Display Value:Q', title='Fastest Pace (min/km)', format='.2f')
+            ]
+        ).properties(height=300)
+        charts.append(pace_chart)
+    
+    # Speed chart (cycling) - find fastest (maximum) speed per period
+    if len(speed_data) > 0:
+        # Group by period, get fastest speed (maximum value)
+        speed_agg = speed_data.groupby("Period").agg({
+            "Display Value": "max",  # Fastest speed = highest value
+            "Activity Date": "first"
+        }).reset_index()
+        
+        speed_chart = alt.Chart(speed_agg).mark_bar(color="#F46A25").encode(
+            x=alt.X('Period:N', title='Period', axis=alt.Axis(labelColor=t['font_color'])),
+            y=alt.Y('Display Value:Q', 
+                   title='Fastest Speed (km/h)',
+                   scale=alt.Scale(zero=False),
+                   axis=alt.Axis(labelColor=t['font_color'])),
+            tooltip=[
+                alt.Tooltip('Period:N', title='Period'),
+                alt.Tooltip('Display Value:Q', title='Fastest Speed (km/h)', format='.1f')
+            ]
+        ).properties(height=300)
+        charts.append(speed_chart)
+    
+    if not charts:
+        return None
+    
+    # Combine charts if we have both, or return single chart
+    if len(charts) == 2:
+        final_chart = alt.vconcat(
+            charts[0], 
+            charts[1]
+        ).resolve_scale(
+            y='independent'
+        ).properties(
+            title=alt.TitleParams(text=title, color=t['title_color'], fontSize=16)
+        ).configure(
+            background=t['background']
+        ).configure_axis(
+            gridColor=t['grid_color'],
+            titleColor=t['title_color']
+        )
+    else:
+        final_chart = charts[0].properties(
+            title=alt.TitleParams(text=title, color=t['title_color'], fontSize=16)
+        ).configure(
+            background=t['background']
+        ).configure_axis(
+            gridColor=t['grid_color'],
+            titleColor=t['title_color']
+        )
+    
+    return final_chart
+
+
 def create_time_of_day_pie(df: pd.DataFrame, title: str = "Activities by Time of Day",
                            theme: Dict = None) -> Optional[alt.Chart]:
     """Create a pie chart showing distribution of activities by time of day.
@@ -550,7 +681,7 @@ def create_hourly_activity_chart(df: pd.DataFrame, title: str = "Activity Distri
     t = get_altair_theme(theme)
     
     chart = alt.Chart(df).mark_bar().encode(
-        x=alt.X('Hour:O', title='Hour of Day', axis=alt.Axis(labelColor=t['font_color'])),
+        x=alt.X('Hour:O', title='Hour of Day', axis=alt.Axis(labelColor=t['font_color'], labelAngle=0)),
         y=alt.Y('Activity Count:Q', title='Number of Activities', axis=alt.Axis(labelColor=t['font_color'])),
         color=alt.value('#12436D'),
         tooltip=[
@@ -591,7 +722,7 @@ def create_day_hour_heatmap(df: pd.DataFrame, title: str = "Activity Patterns: D
     day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     
     chart = alt.Chart(df).mark_rect().encode(
-        x=alt.X('Hour:O', title='Hour of Day', axis=alt.Axis(labelColor=t['font_color'])),
+        x=alt.X('Hour:O', title='Hour of Day', axis=alt.Axis(labelColor=t['font_color'], labelAngle=0)),
         y=alt.Y('Day:N', title='Day of Week', sort=day_order, axis=alt.Axis(labelColor=t['font_color'])),
         color=alt.Color(
             'Count:Q',

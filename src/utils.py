@@ -386,8 +386,15 @@ def is_race(activity_name: str, activity_description: str = "") -> bool:
         >>> is_race("Yorkshire marathon")
         True
     """
-    activity_name = activity_name or ""
-    activity_description = activity_description or ""
+    # Handle None or non-string values
+    activity_name = str(activity_name) if activity_name and not isinstance(activity_name, str) else (activity_name or "")
+    activity_description = str(activity_description) if activity_description and not isinstance(activity_description, str) else (activity_description or "")
+    
+    # Handle NaN values
+    if activity_name == "nan":
+        activity_name = ""
+    if activity_description == "nan":
+        activity_description = ""
     
     name_lower = activity_name.lower()
     desc_lower = activity_description.lower()
