@@ -17,7 +17,8 @@ from src.config import (
 from src.data_loader import (
     load_strava_data, filter_by_activities, 
     filter_by_date_range, get_quarterly_stats, get_monthly_trends,
-    get_aggregated_trends, get_stacked_activity_data
+    get_aggregated_trends, get_stacked_activity_data,
+    get_time_of_day_stats, get_hourly_activity_distribution, get_day_hour_heatmap_data
 )
 from src.utils import (
     calculate_fun_metrics, calculate_cheeky_metrics, get_personal_records, 
@@ -28,7 +29,9 @@ from src.visualizations_altair import (
     create_distance_timeline, create_activity_type_pie,
     create_duration_histogram, create_cumulative_distance_chart,
     create_activity_trends_chart, create_stacked_activity_chart,
-    create_activity_heatmap, create_exercise_obsession_gauge
+    create_activity_heatmap, create_exercise_obsession_gauge,
+    create_time_of_day_pie, create_hourly_activity_chart,
+    create_day_hour_heatmap, create_time_performance_chart
 )
 
 
@@ -129,7 +132,7 @@ def create_sidebar_filters(df):
     }
     
     selected_mode = st.sidebar.selectbox(
-        "Mode",
+        "Activity Profile",
         options=list(mode_options.keys()),
         index=0  # Default to Jack of All
     )
@@ -288,16 +291,40 @@ def render_recent_activity_tab(df_filtered, days_back, theme):
     st.subheader("Recent Activities")
     
     # Create formatted dataframe for display
-    display_df = df_filtered.sort_values("Activity Date", ascending=False)[[
-        "Activity Date", "Activity Type", "Distance (km)", 
+    temp_df = df_filtered.sort_values("Activity Date", ascending=False)[[
+        "Activity Date", "Activity Type", "Activity Group", "Distance (km)", 
         "Duration (min)", "Elevation (m)", "Average Speed (km/h)"
+    ]].copy()
+    
+    # Calculate pace/speed based on activity type
+    def format_pace_speed(row):
+        activity_group = row["Activity Group"]
+        speed_kmh = row["Average Speed (km/h)"]
+        
+        # Use pace for Running and Hiking
+        if activity_group in ["Running", "Hiking"] and speed_kmh > 0:
+            pace_min_per_km = 60 / speed_kmh
+            mins = int(pace_min_per_km)
+            secs = int((pace_min_per_km - mins) * 60)
+            return f"{mins}:{secs:02d} /km"
+        # Use speed for other activities
+        elif speed_kmh > 0:
+            return f"{speed_kmh:.1f} km/h"
+        else:
+            return "-"
+    
+    temp_df["Pace/Speed"] = temp_df.apply(format_pace_speed, axis=1)
+    
+    # Select and reorder columns for display
+    display_df = temp_df[[
+        "Activity Date", "Activity Type", "Distance (km)", 
+        "Duration (min)", "Elevation (m)", "Pace/Speed"
     ]].copy()
     
     # Format numeric columns
     display_df["Distance (km)"] = display_df["Distance (km)"].apply(lambda x: f"{x:,.1f}")
     display_df["Duration (min)"] = display_df["Duration (min)"].apply(lambda x: f"{x:,.0f}")
     display_df["Elevation (m)"] = display_df["Elevation (m)"].apply(lambda x: f"{x:,.0f}")
-    display_df["Average Speed (km/h)"] = display_df["Average Speed (km/h)"].apply(lambda x: f"{x:,.1f}")
     
     st.dataframe(
         display_df,
@@ -305,7 +332,74 @@ def render_recent_activity_tab(df_filtered, days_back, theme):
         hide_index=True
     )
     
+    # Time of Day Analysis
+    st.markdown("---")
+    st.subheader("⏰ Time of Day Analysis")
+    
+    # Check if time of day data is available
+    if "Time of Day" in df_filtered.columns and "Hour of Day" in df_filtered.columns:
+        time_stats = get_time_of_day_stats(df_filtered)
+        
+        if time_stats and time_stats.get('counts'):
+            # Time of day metrics
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.metric(
+                    "🌅 Most Active Time",
+                    time_stats['most_active'],
+                    help="Time of day when you do the most activities"
+                )
+            
+            with col2:
+                morning_count = time_stats['counts'].get('Morning', 0)
+                st.metric(
+                    "🌄 Morning Activities",
+                    f"{morning_count}",
+                    help="Activities between 5am-12pm"
+                )
+            
+            with col3:
+                evening_count = time_stats['counts'].get('Evening', 0)
+                st.metric(
+                    "🌆 Evening Activities",
+                    f"{evening_count}",
+                    help="Activities between 5pm-9pm"
+                )
+            
+            # Time of day visualizations
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                fig_time_pie = create_time_of_day_pie(df_filtered, theme=theme)
+                if fig_time_pie:
+                    st.altair_chart(fig_time_pie, width='stretch')
+            
+            with col2:
+                fig_performance = create_time_performance_chart(df_filtered, theme=theme)
+                if fig_performance:
+                    st.altair_chart(fig_performance, width='stretch')
+            
+            # Hourly distribution
+            hourly_data = get_hourly_activity_distribution(df_filtered)
+            if len(hourly_data) > 0:
+                fig_hourly = create_hourly_activity_chart(hourly_data, theme=theme)
+                if fig_hourly:
+                    st.altair_chart(fig_hourly, width='stretch')
+            
+            # Day-hour heatmap
+            heatmap_data = get_day_hour_heatmap_data(df_filtered)
+            if len(heatmap_data) > 0:
+                fig_heatmap = create_day_hour_heatmap(heatmap_data, theme=theme)
+                if fig_heatmap:
+                    st.altair_chart(fig_heatmap, width='stretch')
+        else:
+            st.info("Time of day data not available for these activities.")
+    else:
+        st.info("Time of day data not available. Make sure your activity data includes 'Start Time' information.")
+    
     # Races table
+    st.markdown("---")
     st.subheader("🏁 Races")
     races = get_races(df_filtered)
     
@@ -548,6 +642,27 @@ def render_help_tab():
     
     st.markdown("---")
     
+    # Activity Profile Explanation
+    st.subheader("🎯 Activity Profiles")
+    
+    st.markdown("""
+    Activity Profiles help you quickly filter and analyze specific types of activities. Choose a profile from the sidebar to focus your analysis:
+    
+    - **🎯 All Rounder**: View all your activities across every sport (default)
+    - **🏃 Runner**: Focus on running activities only
+    - **🥾 Hiker**: Analyze hiking and walking activities
+    - **🚴 Cyclist**: See cycling-specific metrics and stats
+    - **🏊 Swimmer**: Filter to swimming activities
+    - **🏋️ Gym Rat**: Focus on strength training and workouts
+    - **🏅 Triathlete**: View running, cycling, and swimming combined
+    - **❄️ Snowflake**: Analyze winter sports (skiing, snowboarding)
+    - **⚽ Team Player**: Focus on team sports activities
+    
+    Each profile automatically filters your activities to show relevant data and optimizes the dashboard for that sport type.
+    """)
+    
+    st.markdown("---")
+    
     # Quick Tips Section
     st.subheader("💡 Quick Tips")
     
@@ -738,7 +853,87 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
             else:
                 st.metric("Marathon", "N/A", help="No marathon races found")
     
+    # Time of Day Analysis (All-Time)
+    st.markdown("---")
+    st.header("⏰ Time of Day Patterns")
+    
+    if "Time of Day" in df.columns and "Hour of Day" in df.columns:
+        time_stats = get_time_of_day_stats(df)
+        
+        if time_stats and time_stats.get('counts'):
+            # Summary metrics
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                st.metric(
+                    "🌅 Most Active Time",
+                    time_stats['most_active'],
+                    help="Time of day when you do the most activities"
+                )
+            
+            with col2:
+                morning_count = time_stats['counts'].get('Morning', 0)
+                morning_pct = (morning_count / len(df) * 100) if len(df) > 0 else 0
+                st.metric(
+                    "🌄 Morning Activities",
+                    f"{morning_count}",
+                    delta=f"{morning_pct:.1f}%",
+                    help="Activities between 5am-12pm"
+                )
+            
+            with col3:
+                afternoon_count = time_stats['counts'].get('Afternoon', 0)
+                afternoon_pct = (afternoon_count / len(df) * 100) if len(df) > 0 else 0
+                st.metric(
+                    "☀️ Afternoon Activities",
+                    f"{afternoon_count}",
+                    delta=f"{afternoon_pct:.1f}%",
+                    help="Activities between 12pm-5pm"
+                )
+            
+            with col4:
+                evening_count = time_stats['counts'].get('Evening', 0)
+                evening_pct = (evening_count / len(df) * 100) if len(df) > 0 else 0
+                st.metric(
+                    "🌆 Evening Activities",
+                    f"{evening_count}",
+                    delta=f"{evening_pct:.1f}%",
+                    help="Activities between 5pm-9pm"
+                )
+            
+            # Visualizations
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                fig_time_pie = create_time_of_day_pie(df, title="All-Time Activity Distribution by Time of Day", theme=theme)
+                if fig_time_pie:
+                    st.altair_chart(fig_time_pie, width='stretch')
+            
+            with col2:
+                fig_performance = create_time_performance_chart(df, title="Average Performance by Time of Day", theme=theme)
+                if fig_performance:
+                    st.altair_chart(fig_performance, width='stretch')
+            
+            # Hourly distribution
+            hourly_data = get_hourly_activity_distribution(df)
+            if len(hourly_data) > 0:
+                fig_hourly = create_hourly_activity_chart(hourly_data, title="All-Time Hourly Activity Distribution", theme=theme)
+                if fig_hourly:
+                    st.altair_chart(fig_hourly, width='stretch')
+            
+            # Day-hour heatmap
+            heatmap_data = get_day_hour_heatmap_data(df)
+            if len(heatmap_data) > 0:
+                fig_heatmap = create_day_hour_heatmap(heatmap_data, title="Weekly Activity Pattern: When Do You Work Out?", theme=theme)
+                if fig_heatmap:
+                    st.altair_chart(fig_heatmap, width='stretch')
+        else:
+            st.info("Time of day data not available.")
+    else:
+        st.info("Time of day data not available. Make sure your activity data includes 'Start Time' information.")
+    
     # Calendar heatmap
+    st.markdown("---")
     st.header("📅 Activity Calendar")
     
     # Get all years with data

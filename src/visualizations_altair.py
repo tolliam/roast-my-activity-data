@@ -461,3 +461,222 @@ def create_exercise_obsession_gauge(score: int, level: str, theme: Dict = None) 
     )
     
     return chart
+
+
+def create_time_of_day_pie(df: pd.DataFrame, title: str = "Activities by Time of Day",
+                           theme: Dict = None) -> Optional[alt.Chart]:
+    """Create a pie chart showing distribution of activities by time of day.
+    
+    Args:
+        df: Activity DataFrame with 'Time of Day' column.
+        title: Chart title.
+        theme: Dict containing theme colors.
+        
+    Returns:
+        Altair pie chart or None if data is insufficient.
+    """
+    if "Time of Day" not in df.columns or len(df) == 0:
+        return None
+    
+    t = get_altair_theme(theme)
+    
+    # Count activities by time of day
+    time_counts = df["Time of Day"].value_counts().reset_index()
+    time_counts.columns = ["Time of Day", "Count"]
+    
+    # Define colors for time of day periods - using consistent palette
+    time_colors = {
+        "Morning": "#12436D",    # Dark blue
+        "Afternoon": "#28A197",  # Turquoise
+        "Evening": "#F46A25",    # Orange
+        "Night": "#801650",      # Purple
+        "Unknown": "#BDBDBD"     # Gray for unknown
+    }
+    
+    # Order categories logically
+    time_order = ["Morning", "Afternoon", "Evening", "Night", "Unknown"]
+    time_counts["Time of Day"] = pd.Categorical(
+        time_counts["Time of Day"], 
+        categories=time_order, 
+        ordered=True
+    )
+    time_counts = time_counts.sort_values("Time of Day")
+    
+    # Create the pie chart
+    chart = alt.Chart(time_counts).mark_arc(innerRadius=50).encode(
+        theta=alt.Theta('Count:Q'),
+        color=alt.Color(
+            'Time of Day:N',
+            scale=alt.Scale(
+                domain=list(time_colors.keys()),
+                range=list(time_colors.values())
+            ),
+            legend=alt.Legend(
+                title="Time of Day",
+                titleColor=t['title_color'],
+                labelColor=t['font_color'],
+                orient='bottom'
+            )
+        ),
+        tooltip=[
+            alt.Tooltip('Time of Day:N', title='Period'),
+            alt.Tooltip('Count:Q', title='Activities')
+        ]
+    ).properties(
+        title=alt.TitleParams(text=title, color=t['title_color'], fontSize=16),
+        height=300
+    ).configure(
+        background=t['background']
+    )
+    
+    return chart
+
+
+def create_hourly_activity_chart(df: pd.DataFrame, title: str = "Activity Distribution by Hour",
+                                 theme: Dict = None) -> Optional[alt.Chart]:
+    """Create a bar chart showing activity count by hour of day.
+    
+    Args:
+        df: DataFrame with 'Hour' and 'Activity Count' columns.
+        title: Chart title.
+        theme: Dict containing theme colors.
+        
+    Returns:
+        Altair bar chart or None if data is insufficient.
+    """
+    if len(df) == 0 or "Hour" not in df.columns:
+        return None
+    
+    t = get_altair_theme(theme)
+    
+    chart = alt.Chart(df).mark_bar().encode(
+        x=alt.X('Hour:O', title='Hour of Day', axis=alt.Axis(labelColor=t['font_color'])),
+        y=alt.Y('Activity Count:Q', title='Number of Activities', axis=alt.Axis(labelColor=t['font_color'])),
+        color=alt.value('#12436D'),
+        tooltip=[
+            alt.Tooltip('Hour:O', title='Hour'),
+            alt.Tooltip('Activity Count:Q', title='Activities')
+        ]
+    ).properties(
+        title=alt.TitleParams(text=title, color=t['title_color'], fontSize=16),
+        height=300
+    ).configure(
+        background=t['background']
+    ).configure_axis(
+        gridColor=t['grid_color'],
+        titleColor=t['title_color']
+    )
+    
+    return chart
+
+
+def create_day_hour_heatmap(df: pd.DataFrame, title: str = "Activity Patterns: Day & Hour",
+                            theme: Dict = None) -> Optional[alt.Chart]:
+    """Create a heatmap showing activity patterns by day of week and hour.
+    
+    Args:
+        df: DataFrame with 'Day', 'Hour', and 'Count' columns.
+        title: Chart title.
+        theme: Dict containing theme colors.
+        
+    Returns:
+        Altair heatmap or None if data is insufficient.
+    """
+    if len(df) == 0 or not all(col in df.columns for col in ["Day", "Hour", "Count"]):
+        return None
+    
+    t = get_altair_theme(theme)
+    
+    # Ensure proper day ordering
+    day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    
+    chart = alt.Chart(df).mark_rect().encode(
+        x=alt.X('Hour:O', title='Hour of Day', axis=alt.Axis(labelColor=t['font_color'])),
+        y=alt.Y('Day:N', title='Day of Week', sort=day_order, axis=alt.Axis(labelColor=t['font_color'])),
+        color=alt.Color(
+            'Count:Q',
+            scale=alt.Scale(scheme='blues'),
+            legend=alt.Legend(
+                title="Activities",
+                titleColor=t['title_color'],
+                labelColor=t['font_color']
+            )
+        ),
+        tooltip=[
+            alt.Tooltip('Day:N', title='Day'),
+            alt.Tooltip('Hour:O', title='Hour'),
+            alt.Tooltip('Count:Q', title='Activities')
+        ]
+    ).properties(
+        title=alt.TitleParams(text=title, color=t['title_color'], fontSize=16),
+        height=300
+    ).configure(
+        background=t['background']
+    ).configure_axis(
+        gridColor=t['grid_color'],
+        titleColor=t['title_color']
+    )
+    
+    return chart
+
+
+def create_time_performance_chart(df: pd.DataFrame, title: str = "Average Performance by Time of Day",
+                                  theme: Dict = None) -> Optional[alt.Chart]:
+    """Create a chart comparing average distance and speed by time of day.
+    
+    Args:
+        df: Activity DataFrame with 'Time of Day', 'Distance (km)', and 'Average Speed (km/h)' columns.
+        title: Chart title.
+        theme: Dict containing theme colors.
+        
+    Returns:
+        Altair chart or None if data is insufficient.
+    """
+    if "Time of Day" not in df.columns or len(df) == 0:
+        return None
+    
+    t = get_altair_theme(theme)
+    
+    # Calculate average metrics by time of day
+    time_stats = df.groupby("Time of Day").agg({
+        "Distance (km)": "mean",
+        "Duration (min)": "mean",
+        "Average Speed (km/h)": "mean"
+    }).reset_index()
+    
+    # Order categories logically
+    time_order = ["Morning", "Afternoon", "Evening", "Night", "Unknown"]
+    time_stats["Time of Day"] = pd.Categorical(
+        time_stats["Time of Day"], 
+        categories=time_order, 
+        ordered=True
+    )
+    time_stats = time_stats.sort_values("Time of Day")
+    
+    # Round for display
+    time_stats["Avg Distance"] = time_stats["Distance (km)"].round(2)
+    time_stats["Avg Duration"] = time_stats["Duration (min)"].round(1)
+    time_stats["Avg Speed"] = time_stats["Average Speed (km/h)"].round(2)
+    
+    # Create distance chart
+    chart = alt.Chart(time_stats).mark_bar().encode(
+        x=alt.X('Time of Day:N', title='Time of Day', axis=alt.Axis(labelColor=t['font_color'])),
+        y=alt.Y('Avg Distance:Q', title='Average Distance (km)', axis=alt.Axis(labelColor=t['font_color'])),
+        color=alt.value('#12436D'),
+        tooltip=[
+            alt.Tooltip('Time of Day:N', title='Period'),
+            alt.Tooltip('Avg Distance:Q', title='Avg Distance (km)'),
+            alt.Tooltip('Avg Duration:Q', title='Avg Duration (min)'),
+            alt.Tooltip('Avg Speed:Q', title='Avg Speed (km/h)')
+        ]
+    ).properties(
+        title=alt.TitleParams(text=title, color=t['title_color'], fontSize=16),
+        height=300
+    ).configure(
+        background=t['background']
+    ).configure_axis(
+        gridColor=t['grid_color'],
+        titleColor=t['title_color']
+    )
+    
+    return chart

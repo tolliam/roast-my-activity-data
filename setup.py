@@ -31,6 +31,7 @@ setup(
         "streamlit>=1.28.0",
         "pandas>=2.0.0",
         "plotly>=5.17.0",
+        "altair>=5.0.0",
         "python-dateutil>=2.8.2",
     ],
     entry_points={
