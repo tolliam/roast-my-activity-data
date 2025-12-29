@@ -7,7 +7,7 @@ settings used throughout the application.
 from typing import Dict
 
 # Version
-VERSION = "0.10.0"
+VERSION = "0.10.1"
 
 # Application Settings
 APP_TITLE = "🔥 Roast My Activity Data"
@@ -30,9 +30,9 @@ ACTIVITY_COLORS: Dict[str, str] = {
     "Swimming": "#4C2C92",   # Bright purple (navy)
     "Hiking": "#D4A01C",     # Dark gold/amber - for hikes and walks
     "Strength": "#A285D1",   # Light purple
-    "Winter Sports": "#7DD3FC",  # Sky blue - covers Alpine Ski, Backcountry Ski, Nordic Ski, Snowboard
+    "Winter Sports": "#2B5F87",  # Medium navy blue - covers Alpine Ski, Backcountry Ski, Nordic Ski, Snowboard
     "Team Sports": "#D4351C",  # Red - covers Rugby, Football, Netball, Basketball, Soccer
-    "Racket Sports": "#F46A25",  # Orange - covers Tennis, Squash, Badminton, Pickleball, Table Tennis
+    "Racket Sports": "#3D5A80",  # Dark slate blue - covers Tennis, Squash, Badminton, Pickleball, Table Tennis
     "Other": "#801650"       # Dark pink
 }
 
@@ -148,6 +148,16 @@ CUSTOM_CSS = """
             font-size: 13px !important;
         }
         
+        /* Tooltip/help icons in sidebar - make visible in dark mode */
+        [data-testid="stSidebar"] svg {
+            color: white !important;
+            fill: white !important;
+        }
+        
+        [data-testid="stSidebar"] svg path {
+            fill: white !important;
+        }
+        
         /* Reduce spacing in sidebar */
         [data-testid="stSidebar"] .element-container {
             margin-bottom: 0.5rem !important;
@@ -256,7 +266,7 @@ CUSTOM_CSS = """
             font-weight: 700;
             padding-bottom: 20px;
             margin-top: 0 !important;
-            border-bottom: 3px solid #3498db;
+            border-bottom: 3px solid #12436D;
         }
         
         h2, h3 {
@@ -295,7 +305,7 @@ CUSTOM_CSS = """
         }
         
         .stTabs [aria-selected="true"] {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #12436D;
             color: white;
         }
         
@@ -314,7 +324,7 @@ CUSTOM_CSS = """
             
             h1 {
                 color: #fafafa;
-                border-bottom: 3px solid #5584ff;
+                border-bottom: 3px solid #12436D;
             }
             
             h2, h3 {
@@ -339,7 +349,7 @@ CUSTOM_CSS = """
             }
             
             .stTabs [aria-selected="true"] {
-                background: linear-gradient(135deg, #5584ff 0%, #7b3ff2 100%);
+                background: #12436D;
                 color: white;
             }
             

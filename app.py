@@ -1163,7 +1163,7 @@ def main():
     df_filtered = filter_by_date_range(df, days_back)
     
     # Create tabs
-    tab_recent, tab_alltime, tab_fun, tab_help = st.tabs(["📊 Recent Activity", "🏆 All-Time Analysis", "🎉 Just for Fun", "❓ Help"])
+    tab_recent, tab_alltime, tab_fun, tab_help = st.tabs(["Recent Activity", "All-Time Analysis", "Just for Fun", "Help"])
     
     with tab_recent:
         render_recent_activity_tab(df_filtered, days_back, theme)
