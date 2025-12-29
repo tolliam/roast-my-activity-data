@@ -68,19 +68,19 @@ The easiest way to use this app is via Streamlit Cloud:
 
 #### Installation
 
-1. **Clone theconda environment** (recommended)
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/roast-my-activity-data.git
+   cd roast-my-activity-data
+   ```
+
+2. **Create a conda environment** (recommended)
    ```bash
    conda create -n roast-my-activity python=3.13 -y
    conda activate roast-my-activity
    ```
    
    Or use a virtual environment:
-   ```bash
-   git clone https://github.com/yourusername/roast-my-activity-data.git
-   cd roast-my-activity-data
-   ```
-
-2. **Create a virtual environment** (recommended)
    ```bash
    python -m venv venv
    
@@ -109,7 +109,11 @@ The easiest way to use this app is via Streamlit Cloud:
 9. Extract the downloaded ZIP file
 10. Locate the `activities.csv` file inside the extracted folder
 11. Place `activities.csv` in the `data/` folder of this project
-activity-data/
+
+## 📁 Project Structure
+
+```
+roast-my-activity-data/
 ├── app.py                      # Main Streamlit application
 ├── src/
 │   ├── __init__.py            # Package initialization
@@ -136,19 +140,7 @@ activity-data/
 ├── LICENSE                    # MIT License
 ├── README.md                  # This file
 ├── CONTRIBUTING.md            # Contribution guidelines
-└── DEPLOYMENT.md              # Deployment instruction
-│   └── activities.csv    # Your Strava data (not included)
-├── docs/
-│   ├── ARCHITECTURE.md   # System architecture documentation
-│   └── USAGE.md          # Detailed usage guide
-├── tests/
-│   └── test_data_loader.py  # Unit tests (placeholder)
-├── requirements.txt      # Python dependencies
-├── setup.py             # Package setup configuration
-├── .gitignore           # Git ignore rules
-├── LICENSE              # MIT License
-├── README.md            # This file
-└── CONTRIBUTING.md      # Contribution guidelines
+└── DEPLOYMENT.md              # Deployment instructions
 ```
 
 ## 🎯 Usage
@@ -157,9 +149,12 @@ activity-data/
 
 1. **Select Time Range**: Use the sidebar slider to choose how many days of recent activity to display
 2. **Filter Activities**: Select which activity types to include in your analysis
-3. **Explore Tabs**: 
+3. **Choose Activity Profile**: Pick from Runner, Cyclist, Triathlete, Team Player, Racketeer, and more
+4. **Explore Tabs**: 
    - **Recent Activity**: View your latest activities with interactive charts
    - **All-Time Analysis**: Dive deep into your complete activity history
+   - **Just for Fun**: See quirky metrics and comparisons
+   - **Help**: View documentation and profile descriptions
 
 ### Advanced Features
 
@@ -167,9 +162,9 @@ activity-data/
 - **Personal Records**: Automatically identifies your best performances
 - **Trend Visualization**: Spot patterns with rolling averages and cumulative charts
 - **Calendar Heatmap**: See at a glance which days you're most active
+- **Race Detection**: Automatically identifies race activities throughout the year
 
-For detailed usage ins_altair.py**: All Altair chart creation functions (current)
-- **src/visualizations.py**: Plotly chart creation functions (legacy)md)
+For detailed usage instructions, see [USAGE.md](docs/USAGE.md)
 
 ## 🛠️ Development
 
@@ -179,8 +174,8 @@ For detailed usage ins_altair.py**: All Altair chart creation functions (current
 # Install development dependencies
 pip install -r requirements.txt
 
-# Run tests (when implemented)
-pytest tests/
+# Run tests
+pytest tests/ -v
 ```
 
 ### Code Organization
@@ -188,14 +183,18 @@ pytest tests/
 - **src/config.py**: All configuration constants, color schemes, and CSS styling
 - **src/data_loader.py**: Data loading, cleaning, and transformation functions
 - **src/utils.py**: Helper functions for statistics and calculations
-- **src/visualizations.py**: All Plotly chart creation functions
+- **src/visualizations_altair.py**: All Altair chart creation functions (current)
+- **src/visualizations.py**: Plotly chart creation functions (legacy)
 - **app.py**: Main Streamlit app with UI layout and orchestration
+
+For detailed architecture information, see [ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ### Adding New Features
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on contributing to this project.
 
 ## 📊 Data Format
+
 
 The app expects an activities CSV export with these key columns:
 - `Activity Date`: Date and time of activity
@@ -219,13 +218,13 @@ ACTIVITY_COLORS = {
 }
 ```
 
-### Adjusting MetricsAltair](https://altair-viz.github.io
+### Adjusting Metrics
 
 Modify constants in `src/config.py`:
 
 ```python
 DEFAULT_DAYS_BACK = 30  # Change default time range
-MAX_DAYS_BACK = 180     # Extend maximum range
+MAX_DAYS_BACK = 365     # Extend maximum range
 ```
 
 ## 🤝 Contributing
@@ -236,7 +235,16 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for de
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments0.9.3
+## 🙏 Acknowledgments
+
+- Built with [Streamlit](https://streamlit.io)
+- Visualizations powered by [Altair](https://altair-viz.github.io)
+- Activity data from [Strava](https://www.strava.com)
+- UK Government Analysis Function accessible color palette
+
+## 🚦 Project Status
+
+Active development - Version 0.10.1
 
 ## 📈 Future Enhancements
 
@@ -251,20 +259,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [x] Time of day analysis
 - [x] Day of week and month patterns
 - [x] Race detection
-## 🚦 Project Status
-
-Active development - Version 1.0.0
-
-## 📈 Future Enhancements
-
-- [ ] Direct API integration with fitness platforms
-- [ ] Pace analysis and splits
-- [ ] Heart rate zone analysis
-- [ ] Training load calculations
-- [ ] Goal tracking and progress
-- [ ] Export reports as PDF
-- [ ] Comparative athlete analytics
-- [ ] Machine learning predictions
 
 ---
 
