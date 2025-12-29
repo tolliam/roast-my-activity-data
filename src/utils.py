@@ -263,6 +263,7 @@ def get_personal_records(df: pd.DataFrame) -> Dict[str, float]:
         'Strength': 0.0,     # No minimum for stationary activities
         'Winter Sports': 3.0,
         'Team Sports': 2.0,
+        'Racket Sports': 0.0,  # Court sports, distance not meaningful
         'Other': 0.0
     }
     
@@ -400,34 +401,30 @@ def is_race(activity_name: str, activity_description: str = "") -> bool:
     desc_lower = activity_description.lower()
     combined = (name_lower + " " + desc_lower).strip()
     
-    # Anti-patterns that indicate NOT a race even if they contain race keywords
-    anti_patterns = [
+    # Check highest priority anti-patterns first (before any keyword matching)
+    # These override everything
+    priority_anti_patterns = [
         "1/3 marathon",
         "almost half marathon",
         "almost marathon",
         "almost half",
         "pre race",
         "post race",
-        "training",  # "duathlon training", "race training"
-        "recovery",  # "recovery 10k"
-        "worth missing parkrun",  # skipped parkrun for something else
+        "worth missing parkrun",
         "missing parkrun",
         "skip parkrun",
         "skipped parkrun",
-        "race across world",  # TV show
-        "featured in race",  # TV show reference
-        "route",  # "marathon route bike ride"
-        "half ben nevis",  # mountain reference
-        "halfway",  # not a race
-        "too long 10k",  # sarcastic name
+        "race across world",
+        "featured in race",
+        "half ben nevis",
+        "halfway",
     ]
     
-    # Check anti-patterns first
-    for pattern in anti_patterns:
+    for pattern in priority_anti_patterns:
         if pattern in combined:
             return False
     
-    # Strong race indicators - primarily check activity name
+    # Strong race indicators
     # These are unambiguous race terms
     strong_keywords = [
         "parkrun",
@@ -442,14 +439,29 @@ def is_race(activity_name: str, activity_description: str = "") -> bool:
         "5k race",
         "championship",
         "championships",
+        "competition",
         " xc ",  # cross country with spaces to avoid matching "exercise"
         "xc race",
         "xc run",
     ]
     
+    # Check for strong keywords in name or description
     for keyword in strong_keywords:
-        if keyword in name_lower:
+        if keyword in name_lower or keyword in desc_lower:
             return True
+    
+    # Anti-patterns for weaker keywords (route, training, recovery)
+    weak_anti_patterns = [
+        "route",  # "marathon route bike ride"
+        "training",  # "race training", "10k training"
+        "recovery",  # "recovery 10k"
+        "too long 10k",  # sarcastic name
+    ]
+    
+    # Check weak anti-patterns
+    for pattern in weak_anti_patterns:
+        if pattern in combined:
+            return False
     
     # Special handling for "XC" (cross country) - match if it's a word boundary
     import re
@@ -475,10 +487,16 @@ def is_race(activity_name: str, activity_description: str = "") -> bool:
                 return True
     
     # Weak indicator - "race" keyword needs more context
-    # Only matches if "race" is in the name AND seems to be referring to an event
+    # Check in name first, then description
     if "race" in name_lower:
         # Exclude if it's part of other phrases
         if "race across" not in name_lower and "route" not in name_lower:
+            return True
+    
+    # Also check description for "race" keyword
+    if "race" in desc_lower:
+        # Exclude if it's part of other phrases
+        if "race across" not in desc_lower and "route" not in desc_lower:
             return True
     
     # Special case: "Half" in activity name (e.g., "Chippenham Half")

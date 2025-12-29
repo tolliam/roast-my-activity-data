@@ -7,7 +7,7 @@ settings used throughout the application.
 from typing import Dict
 
 # Version
-VERSION = "0.9.3"
+VERSION = "0.10.0"
 
 # Application Settings
 APP_TITLE = "🔥 Roast My Activity Data"
@@ -32,6 +32,7 @@ ACTIVITY_COLORS: Dict[str, str] = {
     "Strength": "#A285D1",   # Light purple
     "Winter Sports": "#7DD3FC",  # Sky blue - covers Alpine Ski, Backcountry Ski, Nordic Ski, Snowboard
     "Team Sports": "#D4351C",  # Red - covers Rugby, Football, Netball, Basketball, Soccer
+    "Racket Sports": "#F46A25",  # Orange - covers Tennis, Squash, Badminton, Pickleball, Table Tennis
     "Other": "#801650"       # Dark pink
 }
 
@@ -56,6 +57,12 @@ ACTIVITY_GROUP_MAP: Dict[str, str] = {
     "Netball": "Team Sports",
     "Basketball": "Team Sports",
     "Soccer": "Team Sports",
+    "Tennis": "Racket Sports",
+    "Squash": "Racket Sports",
+    "Badminton": "Racket Sports",
+    "Pickleball": "Racket Sports",
+    "Table Tennis": "Racket Sports",
+    "Racquetball": "Racket Sports",
     "Water Sport": "Other",
     "Unknown": "Other"
 }

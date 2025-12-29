@@ -24,6 +24,12 @@ ACTIVITY_GROUP_MAP = {
     "Netball": "Team Sports",
     "Basketball": "Team Sports",
     "Soccer": "Team Sports",
+    "Tennis": "Racket Sports",
+    "Squash": "Racket Sports",
+    "Badminton": "Racket Sports",
+    "Pickleball": "Racket Sports",
+    "Table Tennis": "Racket Sports",
+    "Racquetball": "Racket Sports",
     "Water Sport": "Other",
     "Unknown": "Other"
 }
@@ -168,12 +174,17 @@ def filter_by_activities(df: pd.DataFrame, selected_activities: list) -> pd.Data
     Args:
         df: Activity DataFrame
         selected_activities: List of activity groups to include (e.g., ["Running", "Cycling"])
+                           Special value ["__NONE__"] returns empty DataFrame
         
     Returns:
         Filtered DataFrame
     """
     if selected_activities is None or len(selected_activities) == 0:
         return df
+    
+    # Special marker for intentionally showing no activities
+    if selected_activities == ["__NONE__"]:
+        return df[df["Activity Group"].isin([])].copy()  # Returns empty DataFrame
     
     return df[df["Activity Group"].isin(selected_activities)].copy()
 

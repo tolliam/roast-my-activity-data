@@ -1,4 +1,4 @@
-"""Main Streamlit application for Roast My Activity Data.
+﻿"""Main Streamlit application for Roast My Activity Data.
 
 This is the entry point for the activity analytics dashboard.
 Run with: streamlit run app.py
@@ -130,7 +130,8 @@ def create_sidebar_filters(df):
         "🏋️ Gym Rat": "gym",
         "🏅 Triathlete": "triathlete",
         "❄️ Snowflake": "snowflake",
-        "⚽ Team Player": "teamplayer"
+        "⚽ Team Player": "teamplayer",
+        "🎾 Racketeer": "racketeer"
     }
     
     selected_mode = st.sidebar.selectbox(
@@ -144,13 +145,14 @@ def create_sidebar_filters(df):
     # Preset mappings
     presets = {
         "runner": ["Running"],
-        "hiker": ["Hiking", "Walking"],
+        "hiker": ["Hiking"],
         "cyclist": ["Cycling"],
         "swimmer": ["Swimming"],
         "gym": ["Strength"],
         "triathlete": ["Running", "Cycling", "Swimming"],
         "snowflake": ["Winter Sports"],
         "teamplayer": ["Team Sports"],
+        "racketeer": ["Racket Sports"],
         "jackofall": None  # None means all activities
     }
     
@@ -164,8 +166,10 @@ def create_sidebar_filters(df):
             selected_activities = available_activity_groups
         else:
             selected_activities = [act for act in preset_activities if act in available_activity_groups]
+            # If preset results in no matching activities, use a special marker
+            # to indicate we should show empty, not all activities
             if not selected_activities:
-                selected_activities = available_activity_groups
+                selected_activities = ["__NONE__"]  # Special marker for no activities
     else:
         selected_activities = available_activity_groups
     
@@ -264,6 +268,11 @@ def render_recent_activity_tab(df_filtered, days_back, theme):
         theme: Dict containing theme colors for charts.
     """
     st.subheader(f"Last {days_back} Days")
+    
+    # Check if there are any activities
+    if len(df_filtered) == 0:
+        st.info("📭 No relevant activities completed in this time period.")
+        return
     
     # Summary metrics
     stats = calculate_summary_stats(df_filtered)
@@ -579,6 +588,11 @@ def render_fun_tab(df, theme=None):
     if theme is None:
         theme = PLOTLY_LIGHT_THEME
     
+    # Check if there are any activities
+    if len(df) == 0:
+        st.info("📭 No relevant activities completed.")
+        return
+    
     # Exercise obsession meter
     st.header("🔥 Exercise-oholic Meter")
     obsession_score, obsession_level, obsession_desc = calculate_exercise_obsession_score(df)
@@ -666,6 +680,7 @@ def render_help_tab():
     - **🏅 Triathlete**: View running, cycling, and swimming combined
     - **❄️ Snowflake**: Analyze winter sports (skiing, snowboarding)
     - **⚽ Team Player**: Focus on team sports activities
+    - **🎾 Racketeer**: Analyze racket sports (tennis, squash, badminton, etc.)
     
     Each profile automatically filters your activities to show relevant data and optimizes the dashboard for that sport type.
     """)
@@ -747,6 +762,11 @@ def render_alltime_tab(df, time_interval="quarterly", theme=None):
     if theme is None:
         theme = PLOTLY_LIGHT_THEME
     
+    # Check if there are any activities
+    if len(df) == 0:
+        st.info("📭 No relevant activities completed.")
+        return
+        
     # All-time summary metrics
     stats = calculate_summary_stats(df)
     render_summary_metrics(stats, round_to_whole=True)

@@ -72,7 +72,7 @@ def test_all_mapped_activities_still_work():
     assert "Running" in activity_groups, "Run should map to Running"
     assert "Cycling" in activity_groups, "Ride should map to Cycling"
     assert "Swimming" in activity_groups, "Swim should map to Swimming"
-    assert "Walking" in activity_groups, "Walk should map to Walking"
+    assert "Hiking" in activity_groups, "Walk should map to Hiking"
     
     # Ensure no "Other" category is present (all are mapped)
     assert "Other" not in activity_groups, "All activities should be mapped, no 'Other'"

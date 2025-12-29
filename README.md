@@ -4,7 +4,7 @@ A friendly, accessible activity analytics dashboard built with Streamlit. Transf
 
 **✨ This app was 100% vibe coded ✨**
 
-![Python](https://img.shields.io/badge/python-3.8%2B-blue)
+![Python](https://img.shields.io/badge/python-3.13%2B-blue)
 ![Streamlit](https://img.shields.io/badge/streamlit-1.28%2B-red)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -15,34 +15,41 @@ A friendly, accessible activity analytics dashboard built with Streamlit. Transf
 - **Upload Your Own Data**: Upload any Strava activities CSV file directly in the app (uploads are ephemeral ie not kept by the app creator or Streamlit Cloud)
 
 ### 📊 Recent Activity Analysis
-- **Customizable Time Ranges**: Filter activities from 1-90 days
-- **Activity Type Filtering**: Focus on specific activity types (Running, Cycling, Swimming, etc.)
+- **Customizable Time Ranges**: Filter activities from 1-365 days
+- **Activity Profiles**: Choose presets like Runner, Cyclist, Triathlete, Team Player, and more
 - **Interactive Charts**: Distance timelines, activity distribution pie charts, duration histograms
-- **Detailed Activity Table**: Sortable table with all recent activities
+- **Time of Day Analysis**: See when you're most active with hourly breakdowns and heatmaps
+- **Detailed Activity Table**: Sortable table with all recent activities including pace/speed
 
 ### 🏆 All-Time Analytics
 - **Cumulative Statistics**: Total distance, duration, elevation, and activity counts
 - **Fun Comparative Metrics**: 
   - How many times around Earth have you traveled? 🌍
   - How many times up Mt. Everest have you climbed? 🏔️
-  - Total time active in days or years ⏱️
+  - Activities per week average
 - **Trend Analysis**: 
-  - Quarterly distance and activity trends
-  - Rolling averages for smooth trend visualization
-  - Year-over-year comparisons
-  - Activity type composition over time
+  - Monthly, quarterly, or annual distance and activity trends
+  - Activity type composition over time with stacked charts
+  - Flexible time interval selection
 - **Personal Records**: Track your longest, fastest, and highest-elevation activities
-- **Calendar Heatmap**: Visualize activity patterns throughout the year
+- **Day & Month Patterns**: Analyze which days of the week and months of the year you're most active
+- **Race Detection**: Automatically identifies and highlights race activitiesghout the year
 - **Quarterly Breakdown**: Detailed statistics by quarter
 
 ### 🎨 Clean Design
 - Responsive layout with customizable sidebar
+- Dark mode support for charts
 - Clean, modern UI with gradient styling
 - Organized data tables and metric cards
+- UK Government Analysis Function accessible color palette
+
+### 🎉 Just for Fun
+- **Exercise-oholic Meter**: See how obsessed you are with exercise based on frequency, volume, and consistency
+- **Cheeky Metrics**: Fun alternative ways to view your stats
 
 ## 📋 Requirements
 
-- Python 3.8 or higher
+- Python 3.13 or higher
 - Strava data export (CSV format)
 
 ## 🚀 Quick Start
@@ -61,7 +68,13 @@ The easiest way to use this app is via Streamlit Cloud:
 
 #### Installation
 
-1. **Clone the repository**
+1. **Clone theconda environment** (recommended)
+   ```bash
+   conda create -n roast-my-activity python=3.13 -y
+   conda activate roast-my-activity
+   ```
+   
+   Or use a virtual environment:
    ```bash
    git clone https://github.com/yourusername/roast-my-activity-data.git
    cd roast-my-activity-data
@@ -96,27 +109,34 @@ The easiest way to use this app is via Streamlit Cloud:
 9. Extract the downloaded ZIP file
 10. Locate the `activities.csv` file inside the extracted folder
 11. Place `activities.csv` in the `data/` folder of this project
-
-### Running the App
-
-```bash
-streamlit run app.py
-```
-
-The app will open in your default web browser at `http://localhost:8501`
-
-## 📁 Project Structure
-
-```
-roast-my-strava/
-├── app.py                 # Main Streamlit application
+activity-data/
+├── app.py                      # Main Streamlit application
 ├── src/
-│   ├── __init__.py       # Package initialization
-│   ├── config.py         # Configuration and constants
-│   ├── data_loader.py    # Data loading and preprocessing
-│   ├── utils.py          # Utility functions and calculations
-│   └── visualizations.py # Chart and graph creation
+│   ├── __init__.py            # Package initialization
+│   ├── config.py              # Configuration and constants
+│   ├── data_loader.py         # Data loading and preprocessing
+│   ├── utils.py               # Utility functions and calculations
+│   ├── visualizations.py      # Plotly chart creation (legacy)
+│   └── visualizations_altair.py # Altair chart creation (current)
 ├── data/
+│   └── activities.csv         # Your Strava data (not included)
+├── docs/
+│   ├── ARCHITECTURE.md        # System architecture documentation
+│   └── USAGE.md               # Detailed usage guide
+├── tests/
+│   ├── test_data_loader.py    # Data loading tests
+│   ├── test_config.py         # Configuration tests
+│   ├── test_races.py          # Race detection tests
+│   ├── test_team_sports_config.py # Team sports tests
+│   ├── test_unmapped_activities.py # Unmapped activity tests
+│   └── test_utils.py          # Utility function tests
+├── requirements.txt           # Python dependencies
+├── setup.py                   # Package setup configuration
+├── .gitignore                 # Git ignore rules
+├── LICENSE                    # MIT License
+├── README.md                  # This file
+├── CONTRIBUTING.md            # Contribution guidelines
+└── DEPLOYMENT.md              # Deployment instruction
 │   └── activities.csv    # Your Strava data (not included)
 ├── docs/
 │   ├── ARCHITECTURE.md   # System architecture documentation
@@ -148,7 +168,8 @@ roast-my-strava/
 - **Trend Visualization**: Spot patterns with rolling averages and cumulative charts
 - **Calendar Heatmap**: See at a glance which days you're most active
 
-For detailed usage instructions, see [docs/USAGE.md](docs/USAGE.md)
+For detailed usage ins_altair.py**: All Altair chart creation functions (current)
+- **src/visualizations.py**: Plotly chart creation functions (legacy)md)
 
 ## 🛠️ Development
 
@@ -198,7 +219,7 @@ ACTIVITY_COLORS = {
 }
 ```
 
-### Adjusting Metrics
+### Adjusting MetricsAltair](https://altair-viz.github.io
 
 Modify constants in `src/config.py`:
 
@@ -215,18 +236,21 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for de
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## 🙏 Acknowledgments0.9.3
 
-- Built with [Streamlit](https://streamlit.io/)
-- Visualizations powered by [Plotly](https://plotly.com/)
-- Data processing with [Pandas](https://pandas.pydata.org/)
-- Color palette based on [UK Government Analysis Function](https://analysisfunction.civilservice.gov.uk/policy-store/codes-for-accessible-colours/)
+## 📈 Future Enhancements
 
-## 📧 Support
-
-- **Issues**: Please use the [GitHub issue tracker](https://github.com/tolliam/roast-my-activity-data/issues)
-- **Questions**: Open a discussion on GitHub
-
+- [ ] Direct API integration with fitness platforms
+- [x] Pace analysis and speed timelines
+- [ ] Heart rate zone analysis
+- [ ] Training load calculations
+- [ ] Goal tracking and progress
+- [ ] Export reports as PDF
+- [ ] Comparative athlete analytics
+- [ ] Machine learning predictions
+- [x] Time of day analysis
+- [x] Day of week and month patterns
+- [x] Race detection
 ## 🚦 Project Status
 
 Active development - Version 1.0.0
